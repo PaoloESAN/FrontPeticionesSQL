@@ -1,6 +1,6 @@
 import React from 'react'
 import Navbar from '../components/Navbar'
-
+import Modal from '../components/Modal'
 export default function Inicio() {
     const crearBase = async () => {
         const nombre = document.getElementById('crearBase').value;
@@ -19,7 +19,10 @@ export default function Inicio() {
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error de conexión');
+            const modal = document.getElementById('modalCrear');
+            if (modal) {
+                modal.showModal();
+            }
         }
     }
     const eliminar = () => {
@@ -104,6 +107,7 @@ export default function Inicio() {
                     </div>
                 </div>
             </div>
+            <Modal texto={"hola"} objeto={{ titulo: "Error de Conexión", idModal: "modalCrear", mensaje: "No se pudo conectar con el servidor. Verifica que la API esté funcionando." }} />
         </>
     )
 }

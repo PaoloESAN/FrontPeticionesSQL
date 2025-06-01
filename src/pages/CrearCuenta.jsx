@@ -1,7 +1,8 @@
 import React from 'react'
+import './CreaCue.css'
 
 export default function CrearCuenta() {
     return (
-        <div>CrearCuenta</div>
+        <p className='hola'>Crea cuenta</p>
     )
 }
