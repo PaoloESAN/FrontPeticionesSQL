@@ -1,5 +1,4 @@
 import React from 'react'
-import './Modal.css'
 export default function Modal({ objeto, color = "text-red-500" }) {
     return (
         <dialog id={objeto.idModal} className="modal">

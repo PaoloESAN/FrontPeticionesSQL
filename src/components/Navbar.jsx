@@ -1,8 +1,7 @@
 import React from 'react'
-import "./Navbar.css";
 export default function Navbar() {
     return (
-        <div className="navbar bg-primary text-primary-content bg-base-100 shadow-sm">
+        <div className="navbar bg-primary text-primary-content shadow-sm">
             <div className="flex-1">
                 <a className="btn btn-ghost text-xl">Base de datos</a>
             </div>
