@@ -115,30 +115,20 @@ export default function Cards({ crearBase, eliminar, ejecutarConsulta }) {
                 <div className="card-body space-y-4">
                     <h2 className="card-title">Ejecutar consulta:</h2>
                     <div className='flex flex-row gap-2 items-center'>
-                        <input
-                            type="text"
-                            placeholder="Base de datos"
-                            className="input input-accent"
-                            id='baseDatosConsulta'
-                        />
-                        <div className="dropdown">
-                            <div tabIndex={0} role="button" className="btn m-1 btn-soft btn-accent rounded-3xl">
-                                {isLoading ? 'Cargando...' : 'Bases'}
-                            </div>
-                            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
-                                {isLoading ? (
-                                    <li><span className="text-gray-500">Cargando bases...</span></li>
-                                ) : basesDatos.length > 0 ? (
-                                    basesDatos.map((base, index) => (
-                                        <li key={index}>
-                                            <a onClick={() => elegirBase(base)}>{base}</a>
-                                        </li>
-                                    ))
-                                ) : (
-                                    <li><span className="text-gray-500">No hay bases de datos</span></li>
-                                )}
-                            </ul>
-                        </div>
+                        <select defaultValue="Color scheme" className="select select-accent" id='consultaSelectBase'>
+                            <option disabled={true}>Bases de datos</option>
+                            {isLoading ? (
+                                <option><span className="text-gray-500">Cargando bases...</span></option>
+                            ) : basesDatos.length > 0 ? (
+                                basesDatos.map((base, index) => (
+                                    <option key={index}>
+                                        <a onClick={() => elegirBase(base)}>{base}</a>
+                                    </option>
+                                ))
+                            ) : (
+                                <option><span className="text-gray-500">No hay bases de datos</span></option>
+                            )}
+                        </select>
                     </div>
                     <input
                         type="text"

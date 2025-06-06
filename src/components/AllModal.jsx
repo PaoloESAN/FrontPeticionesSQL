@@ -37,3 +37,21 @@ export function ModalEliminarBase() {
         </>
     )
 }
+export function ModalConsultaBase() {
+    return (
+        <>
+            <Modal objeto={{
+                titulo: "Error de Conexión", idModal: "modalConsultaError",
+                mensaje: "No se pudo conectar con el servidor. Verifica que la API esté funcionando."
+            }} />
+            <Modal objeto={{
+                titulo: "Error al hacer la consulta a la base de datos", idModal: "modalConsultaErrorBase",
+                mensaje: "Verifica la consulta SQL."
+            }} />
+            <Modal color="text-green-600" objeto={{
+                titulo: "Consulta ejecutada correctamente", idModal: "modalConsultaOk",
+                mensaje: "Se ha ejecutado la consulta a la base de datos correctamente."
+            }} />
+        </>
+    )
+}
