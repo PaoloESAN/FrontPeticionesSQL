@@ -40,10 +40,20 @@ export default function Inicio() {
             document.getElementById('modalEliminarError').showModal();
         }
     }
-    const ejecutarConsulta = async () => {
-        const nombre = document.getElementById('consultaSelectBase').value;
-        const consulta = document.getElementById('consultaSql').value;
-        const resultado = document.getElementById('resultadoConsulta');
+    const ejecutarConsulta = async (consultaSQL, baseDatosSeleccionada) => {
+        let nombre;
+        let consulta;
+        let resultado = document.getElementById('resultadoConsulta');
+        if (baseDatosSeleccionada) {
+            nombre = baseDatosSeleccionada;
+        } else {
+            nombre = document.getElementById('consultaSelectBase').value;
+        }
+        if (consultaSQL) {
+            consulta = consultaSQL;
+        } else {
+            consulta = document.getElementById('consultaSql').value;
+        }
         console.log('Nombre de la base:', nombre);
         console.log('Consulta SQL:', consulta);
 
@@ -77,7 +87,7 @@ export default function Inicio() {
             <ModalEliminarBase />
             <ModalConsultaBase />
             <div className='text-2xl ml-8 mt-10 mr-10'>
-                <textarea id='resultadoConsulta' placeholder="Resultado" className="textarea textarea-primary w-full" disabled></textarea>
+                <textarea id='resultadoConsulta' placeholder="Resultado" className="h-50 textarea textarea-primary w-full" disabled></textarea>
             </div>
         </>
     )
