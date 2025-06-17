@@ -4,3 +4,4 @@ export { default as ColumnaSelector } from './ColumnaSelector';
 export { default as CrearBaseCard } from './CrearBaseCard';
 export { default as EliminarBaseCard } from './EliminarBaseCard';
 export { default as ConsultaCard } from './ConsultaCard';
+export { default as CrearTablaCard } from './CrearTablaCard';

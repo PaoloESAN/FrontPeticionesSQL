@@ -30,7 +30,7 @@ export default function CrearBaseCard({ onCrearBase, onBasesActualizadas }) {
                     <input
                         type="text"
                         placeholder="Nombre de la base de datos"
-                        className="input input-primary"
+                        className="input input-primary w-full"
                         value={nombreBase}
                         onChange={(e) => setNombreBase(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleCrear()}
