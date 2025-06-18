@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import BaseDatosSelector from './BaseDatosSelector';
+import { ModalConsultaPersonalizada } from '../AllModal';
 
 export default function ConsultaPersonalizadaCard({ onEjecutarConsulta }) {
     const [baseDatosSeleccionada, setBaseDatosSeleccionada] = useState('');
     const [consultaSQL, setConsultaSQL] = useState('');
-    const [isExecuting, setIsExecuting] = useState(false);
-
-    const handleEjecutar = async () => {
+    const [isExecuting, setIsExecuting] = useState(false); const handleEjecutar = async () => {
         if (!baseDatosSeleccionada) {
-            alert('Por favor, selecciona una base de datos');
+            document.getElementById('modalConsultaPersonalizadaErrorValidacion').showModal();
             return;
         }
 
         if (!consultaSQL.trim()) {
-            alert('Por favor, escribe una consulta SQL');
+            document.getElementById('modalConsultaPersonalizadaErrorValidacion').showModal();
             return;
         }
 
@@ -25,7 +24,7 @@ export default function ConsultaPersonalizadaCard({ onEjecutarConsulta }) {
             await onEjecutarConsulta(consultaSQL.trim(), baseDatosSeleccionada);
         } catch (error) {
             console.error('Error al ejecutar consulta:', error);
-            alert('Error al ejecutar la consulta: ' + error.message);
+            document.getElementById('modalConsultaPersonalizadaError').showModal();
         } finally {
             setIsExecuting(false);
         }
@@ -75,10 +74,10 @@ export default function ConsultaPersonalizadaCard({ onEjecutarConsulta }) {
                             {isExecuting ? 'Ejecutando...' : 'Ejecutar Consulta'}
                         </button>
                     </div>
-                </div>
-
-                {/* Botones */}
+                </div>                {/* Botones */}
             </div>
+
+            <ModalConsultaPersonalizada />
         </div>
     );
 }

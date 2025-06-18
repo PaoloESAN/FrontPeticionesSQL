@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import BaseDatosSelector from './BaseDatosSelector';
 import TablaSelector from './TablaSelector';
+import { ModalEliminarTabla } from '../AllModal';
 
 export default function EliminarTablaCard() {
     const [baseDatosSeleccionada, setBaseDatosSeleccionada] = useState('');
@@ -15,30 +16,40 @@ export default function EliminarTablaCard() {
     }; const handleBaseDatosChange = (nuevaBase) => {
         setBaseDatosSeleccionada(nuevaBase);
         setTablaSeleccionada(''); // Limpiar tabla cuando cambia la base
-    };
-
-    const handleTablaChange = (nuevaTabla) => {
+    }; const handleTablaChange = (nuevaTabla) => {
         setTablaSeleccionada(nuevaTabla);
     };
 
-    const handleEliminar = async () => {
+    const mostrarConfirmacion = () => {
         if (!baseDatosSeleccionada) {
-            alert('Por favor, selecciona una base de datos');
+            document.getElementById('modalEliminarTablaErrorValidacion').showModal();
             return;
         }
 
         if (!tablaSeleccionada) {
-            alert('Por favor, selecciona una tabla');
+            document.getElementById('modalEliminarTablaErrorValidacion').showModal();
             return;
         }
 
-        // Confirmación antes de eliminar
-        const confirmacion = window.confirm(
-            `¿Estás seguro de que deseas eliminar la tabla "${tablaSeleccionada}" de la base de datos "${baseDatosSeleccionada}"?\n\nEsta acción no se puede deshacer y se perderán todos los datos de la tabla.`
-        );
+        // Rellenar los datos en el modal de confirmación
+        document.getElementById('confirmarBaseDatos').textContent = baseDatosSeleccionada;
+        document.getElementById('confirmarTabla').textContent = tablaSeleccionada;
 
-        if (!confirmacion) return;
+        // Configurar el botón de confirmación
+        const btnConfirmar = document.getElementById('btnConfirmarEliminar');
+        btnConfirmar.onclick = confirmarEliminacion;
 
+        // Mostrar modal de confirmación
+        document.getElementById('modalConfirmarEliminarTabla').showModal();
+    };
+
+    const confirmarEliminacion = async () => {
+        // Cerrar modal de confirmación
+        document.getElementById('modalConfirmarEliminarTabla').close();
+
+        // Proceder con la eliminación
+        await ejecutarEliminacion();
+    }; const ejecutarEliminacion = async () => {
         setIsDeleting(true);
         try {
             // Construir consulta SQL para eliminar tabla
@@ -51,7 +62,7 @@ export default function EliminarTablaCard() {
             });
 
             if (response.ok) {
-                alert(`¡Tabla "${tablaSeleccionada}" eliminada exitosamente!`);
+                document.getElementById('modalEliminarTablaOk').showModal();
 
                 // Limpiar selección de tabla después del éxito
                 setTablaSeleccionada('');
@@ -61,11 +72,11 @@ export default function EliminarTablaCard() {
             } else {
                 const errorData = await response.json();
                 console.error('Error al eliminar tabla:', errorData);
-                alert('Error al eliminar la tabla. Verifica que la tabla exista y no tenga dependencias.');
+                document.getElementById('modalEliminarTablaErrorBase').showModal();
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error de conexión. Intenta nuevamente.');
+            document.getElementById('modalEliminarTablaError').showModal();
         } finally {
             setIsDeleting(false);
         }
@@ -100,13 +111,14 @@ export default function EliminarTablaCard() {
                 <div className="justify-end card-actions">
                     <button
                         className="btn btn-soft btn-error"
-                        onClick={handleEliminar}
+                        onClick={mostrarConfirmacion}
                         disabled={isDeleting || !baseDatosSeleccionada || !tablaSeleccionada}
                     >
-                        {isDeleting ? 'Eliminando...' : 'Eliminar Tabla'}
-                    </button>
+                        {isDeleting ? 'Eliminando...' : 'Eliminar Tabla'}                    </button>
                 </div>
             </div>
+
+            <ModalEliminarTabla />
         </div>
     );
 }

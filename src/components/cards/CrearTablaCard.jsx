@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import BaseDatosSelector from './BaseDatosSelector';
+import { ModalCrearTabla } from '../AllModal';
 
 export default function CrearTablaCard() {
     const [baseDatosSeleccionada, setBaseDatosSeleccionada] = useState('');
@@ -10,11 +11,9 @@ export default function CrearTablaCard() {
         window.dispatchEvent(new CustomEvent('tablasActualizadas', {
             detail: { baseDatos: baseDatosSeleccionada }
         }));
-    };
-
-    const handleOpenModal = () => {
+    }; const handleOpenModal = () => {
         if (!baseDatosSeleccionada) {
-            alert('Por favor, selecciona una base de datos primero');
+            document.getElementById('modalCrearTablaErrorValidacion').showModal();
             return;
         }
         document.getElementById('modalCrearTabla').showModal();
@@ -46,17 +45,18 @@ export default function CrearTablaCard() {
                     </button>
                 </div>
             </div>            {/* Modal para crear tabla */}
-            <ModalCrearTabla
+            <ModalCrearTablaFormulario
                 baseDatos={baseDatosSeleccionada}
                 setIsCreating={setIsCreating}
                 onTablaCreada={notificarCambioTablas}
             />
+            <ModalCrearTabla />
         </div>
     );
 }
 
 // Componente Modal separado
-function ModalCrearTabla({ baseDatos, setIsCreating, onTablaCreada }) {
+function ModalCrearTablaFormulario({ baseDatos, setIsCreating, onTablaCreada }) {
     const [nombreTabla, setNombreTabla] = useState('');
     const [columnas, setColumnas] = useState([
         { nombre: '', tipo: 'VARCHAR(255)' }
@@ -91,16 +91,15 @@ function ModalCrearTabla({ baseDatos, setIsCreating, onTablaCreada }) {
         setColumnas(nuevasColumnas);
     };
 
-    const crearTabla = async () => {
-        // Validaciones
+    const crearTabla = async () => {        // Validaciones
         if (!nombreTabla.trim()) {
-            alert('Por favor, ingresa un nombre para la tabla');
+            document.getElementById('modalCrearTablaErrorValidacion').showModal();
             return;
         }
 
         const columnasValidas = columnas.filter(col => col.nombre.trim() !== '');
         if (columnasValidas.length === 0) {
-            alert('Por favor, agrega al menos una columna con nombre');
+            document.getElementById('modalCrearTablaErrorValidacion').showModal();
             return;
         }
 
@@ -129,18 +128,16 @@ function ModalCrearTabla({ baseDatos, setIsCreating, onTablaCreada }) {
                 // Notificar que se creó una tabla para refrescar selectores
                 if (onTablaCreada) {
                     onTablaCreada();
-                }
-
-                // Mostrar éxito
-                alert('¡Tabla creada exitosamente!');
+                }                // Mostrar éxito
+                document.getElementById('modalCrearTablaOk').showModal();
             } else {
                 const errorData = await response.json();
                 console.error('Error al crear tabla:', errorData);
-                alert('Error al crear la tabla. Revisa los datos e intenta nuevamente.');
+                document.getElementById('modalCrearTablaErrorBase').showModal();
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error de conexión. Intenta nuevamente.');
+            document.getElementById('modalCrearTablaError').showModal();
         } finally {
             setIsCreating(false);
         }

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useBasesDatos } from '../../context/BaseDatosContext';
+import { ModalCrearBase } from '../AllModal';
 
 export default function CrearBaseCard({ onCrearBase }) {
     const [isOperating, setIsOperating] = useState(false);
     const [nombreBase, setNombreBase] = useState('');
-    const { refrescarBasesDatos } = useBasesDatos();
-
-    const handleCrear = async () => {
+    const { refrescarBasesDatos } = useBasesDatos(); const handleCrear = async () => {
         if (!nombreBase.trim()) {
-            alert('Por favor, ingresa un nombre para la base de datos');
+            document.getElementById('modalCrearErrorBase').showModal();
             return;
         }
 
@@ -44,9 +43,10 @@ export default function CrearBaseCard({ onCrearBase }) {
                         disabled={isOperating || !nombreBase.trim()}
                     >
                         {isOperating ? 'Creando...' : 'Crear'}
-                    </button>
-                </div>
+                    </button>                </div>
             </div>
+
+            <ModalCrearBase />
         </div>
     );
 }

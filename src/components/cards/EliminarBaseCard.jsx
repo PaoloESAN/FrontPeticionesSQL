@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import BaseDatosSelector from './BaseDatosSelector';
 import { useBasesDatos } from '../../context/BaseDatosContext';
+import { ModalEliminarBase } from '../AllModal';
 
 export default function EliminarBaseCard({ onEliminarBase }) {
     const [isOperating, setIsOperating] = useState(false);
     const [baseDatosSeleccionada, setBaseDatosSeleccionada] = useState('');
-    const { refrescarBasesDatos } = useBasesDatos();
-
-    const handleEliminar = async () => {
+    const { refrescarBasesDatos } = useBasesDatos(); const handleEliminar = async () => {
         if (!baseDatosSeleccionada) {
-            alert('Por favor, selecciona una base de datos para eliminar');
+            document.getElementById('modalEliminarErrorBase').showModal();
             return;
         }
 
@@ -49,9 +48,10 @@ export default function EliminarBaseCard({ onEliminarBase }) {
                         disabled={isOperating || !baseDatosSeleccionada}
                     >
                         {isOperating ? 'Eliminando...' : 'Eliminar'}
-                    </button>
-                </div>
+                    </button>                </div>
             </div>
+
+            <ModalEliminarBase />
         </div>
     );
 }

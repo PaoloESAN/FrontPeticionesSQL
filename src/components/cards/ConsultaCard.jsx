@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import BaseDatosSelector from './BaseDatosSelector';
 import TablaSelector from './TablaSelector';
 import ColumnaSelector from './ColumnaSelector';
+import { ModalConsultaBase } from '../AllModal';
 
 export default function ConsultaCard({ onEjecutarConsulta }) {
     const [baseDatosSeleccionada, setBaseDatosSeleccionada] = useState('');
@@ -20,15 +21,13 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
     };
 
     const handleEjecutar = async () => {
-        const consultaSQL = construirConsultaSQL();
-
-        if (!consultaSQL) {
-            alert('Por favor, completa todos los campos requeridos');
+        const consultaSQL = construirConsultaSQL(); if (!consultaSQL) {
+            document.getElementById('modalConsultaErrorBase').showModal();
             return;
         }
 
         if (!baseDatosSeleccionada) {
-            alert('Por favor, selecciona una base de datos');
+            document.getElementById('modalConsultaErrorBase').showModal();
             return;
         }
 
@@ -104,9 +103,10 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
                         onClick={handleEjecutar}
                     >
                         Ejecutar
-                    </button>
-                </div>
+                    </button>                </div>
             </div>
+
+            <ModalConsultaBase />
         </div>
     );
 }
