@@ -7,7 +7,12 @@ export default function EliminarTablaCard() {
     const [tablaSeleccionada, setTablaSeleccionada] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleBaseDatosChange = (nuevaBase) => {
+    const notificarCambioTablas = () => {
+        // Enviar evento personalizado para notificar que las tablas han cambiado
+        window.dispatchEvent(new CustomEvent('tablasActualizadas', {
+            detail: { baseDatos: baseDatosSeleccionada }
+        }));
+    }; const handleBaseDatosChange = (nuevaBase) => {
         setBaseDatosSeleccionada(nuevaBase);
         setTablaSeleccionada(''); // Limpiar tabla cuando cambia la base
     };
@@ -50,6 +55,9 @@ export default function EliminarTablaCard() {
 
                 // Limpiar selección de tabla después del éxito
                 setTablaSeleccionada('');
+
+                // Notificar cambio en las tablas
+                notificarCambioTablas();
             } else {
                 const errorData = await response.json();
                 console.error('Error al eliminar tabla:', errorData);
@@ -78,8 +86,7 @@ export default function EliminarTablaCard() {
                     />
                 </div>
 
-                {/* Selector de tablas */}
-                <div className='flex flex-row gap-2 items-center'>
+                {/* Selector de tablas */}                <div className='flex flex-row gap-2 items-center'>
                     <TablaSelector
                         baseDatos={baseDatosSeleccionada}
                         value={tablaSeleccionada}

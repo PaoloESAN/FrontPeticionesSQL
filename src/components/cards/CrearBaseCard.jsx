@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useBasesDatos } from '../../context/BaseDatosContext';
 
-export default function CrearBaseCard({ onCrearBase, onBasesActualizadas }) {
+export default function CrearBaseCard({ onCrearBase }) {
     const [isOperating, setIsOperating] = useState(false);
     const [nombreBase, setNombreBase] = useState('');
+    const { refrescarBasesDatos } = useBasesDatos();
 
     const handleCrear = async () => {
         if (!nombreBase.trim()) {
@@ -14,9 +16,8 @@ export default function CrearBaseCard({ onCrearBase, onBasesActualizadas }) {
         try {
             await onCrearBase(nombreBase);
             setNombreBase(''); // Limpiar el input
-            if (onBasesActualizadas) {
-                onBasesActualizadas();
-            }
+            // Refrescar la lista de bases de datos automáticamente
+            refrescarBasesDatos();
         } finally {
             setIsOperating(false);
         }

@@ -5,6 +5,13 @@ export default function CrearTablaCard() {
     const [baseDatosSeleccionada, setBaseDatosSeleccionada] = useState('');
     const [isCreating, setIsCreating] = useState(false);
 
+    const notificarCambioTablas = () => {
+        // Enviar evento personalizado para notificar que las tablas han cambiado
+        window.dispatchEvent(new CustomEvent('tablasActualizadas', {
+            detail: { baseDatos: baseDatosSeleccionada }
+        }));
+    };
+
     const handleOpenModal = () => {
         if (!baseDatosSeleccionada) {
             alert('Por favor, selecciona una base de datos primero');
@@ -38,19 +45,18 @@ export default function CrearTablaCard() {
                         {isCreating ? 'Creando...' : 'Crear Tabla'}
                     </button>
                 </div>
-            </div>
-
-            {/* Modal para crear tabla */}
+            </div>            {/* Modal para crear tabla */}
             <ModalCrearTabla
                 baseDatos={baseDatosSeleccionada}
                 setIsCreating={setIsCreating}
+                onTablaCreada={notificarCambioTablas}
             />
         </div>
     );
 }
 
 // Componente Modal separado
-function ModalCrearTabla({ baseDatos, setIsCreating }) {
+function ModalCrearTabla({ baseDatos, setIsCreating, onTablaCreada }) {
     const [nombreTabla, setNombreTabla] = useState('');
     const [columnas, setColumnas] = useState([
         { nombre: '', tipo: 'VARCHAR(255)' }
@@ -112,15 +118,18 @@ function ModalCrearTabla({ baseDatos, setIsCreating }) {
 
             const response = await fetch(`http://localhost:8080/api/consultaBase?nombre=${baseDatos}&sql=${encodeURIComponent(consultaSQL)}`, {
                 method: 'POST',
-            });
-
-            if (response.ok) {
+            }); if (response.ok) {
                 // Limpiar formulario
                 setNombreTabla('');
                 setColumnas([{ nombre: '', tipo: 'VARCHAR(255)' }]);
 
                 // Cerrar modal
                 document.getElementById('modalCrearTabla').close();
+
+                // Notificar que se creó una tabla para refrescar selectores
+                if (onTablaCreada) {
+                    onTablaCreada();
+                }
 
                 // Mostrar éxito
                 alert('¡Tabla creada exitosamente!');

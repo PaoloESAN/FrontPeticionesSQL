@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import BaseDatosSelector from './BaseDatosSelector';
+import { useBasesDatos } from '../../context/BaseDatosContext';
 
-export default function EliminarBaseCard({ onEliminarBase, onBasesActualizadas }) {
+export default function EliminarBaseCard({ onEliminarBase }) {
     const [isOperating, setIsOperating] = useState(false);
     const [baseDatosSeleccionada, setBaseDatosSeleccionada] = useState('');
+    const { refrescarBasesDatos } = useBasesDatos();
 
     const handleEliminar = async () => {
         if (!baseDatosSeleccionada) {
@@ -21,9 +23,8 @@ export default function EliminarBaseCard({ onEliminarBase, onBasesActualizadas }
         try {
             await onEliminarBase(baseDatosSeleccionada);
             setBaseDatosSeleccionada(''); // Limpiar selección
-            if (onBasesActualizadas) {
-                onBasesActualizadas();
-            }
+            // Refrescar la lista de bases de datos automáticamente
+            refrescarBasesDatos();
         } finally {
             setIsOperating(false);
         }

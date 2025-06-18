@@ -57,6 +57,7 @@ export default function ConsultaPersonalizadaCard({ onEjecutarConsulta }) {
                         className="textarea textarea-warning w-full h-16 resize-none"
                         value={consultaSQL}
                         onChange={(e) => setConsultaSQL(e.target.value)}
+                        disabled={baseDatosSeleccionada === ''}
                     />
                     <div className="flex justify-between card-actions">
                         <button

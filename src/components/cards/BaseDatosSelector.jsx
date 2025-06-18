@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useBasesDatos } from '../../context/BaseDatosContext';
 
 export default function BaseDatosSelector({
     onBaseDatosChange,
@@ -6,29 +7,7 @@ export default function BaseDatosSelector({
     placeholder = "Selecciona base de datos",
     className = "select select-accent"
 }) {
-    const [basesDatos, setBasesDatos] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const obtenerBasesDatos = async () => {
-        try {
-            setIsLoading(true);
-            const response = await fetch('http://localhost:8080/api/listarBases');
-            if (response.ok) {
-                const data = await response.json();
-                setBasesDatos(Array.isArray(data) ? data : []);
-            } else {
-                console.error('Error en la respuesta:', response.status);
-            }
-        } catch (error) {
-            console.error('Error al obtener bases de datos:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        obtenerBasesDatos();
-    }, []);
+    const { basesDatos, isLoading } = useBasesDatos();
 
     const handleChange = (e) => {
         const selectedBase = e.target.value;

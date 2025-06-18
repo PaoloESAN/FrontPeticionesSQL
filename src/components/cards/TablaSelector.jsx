@@ -32,10 +32,23 @@ export default function TablaSelector({
         } finally {
             setIsLoading(false);
         }
-    };
-
-    useEffect(() => {
+    }; useEffect(() => {
         obtenerTablas(baseDatos);
+    }, [baseDatos]);
+
+    // Escuchar eventos de actualización de tablas
+    useEffect(() => {
+        const handleTablasActualizadas = (event) => {
+            if (event.detail.baseDatos === baseDatos) {
+                obtenerTablas(baseDatos);
+            }
+        };
+
+        window.addEventListener('tablasActualizadas', handleTablasActualizadas);
+
+        return () => {
+            window.removeEventListener('tablasActualizadas', handleTablasActualizadas);
+        };
     }, [baseDatos]);
 
     const handleChange = (e) => {
