@@ -6,11 +6,25 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+let mainWindow;
+let splash;
+
 const createWindow = () => {
+
+  splash = new BrowserWindow({
+    width: 600,
+    height: 400,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    resizable: false,
+  });
+  splash.loadFile(path.join(__dirname, 'splash.html'));
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1000,
     height: 800,
+    show: false,
     title: 'DatabaseFix',
     icon: path.join(__dirname, 'DBIcon.ico'),
     webPreferences: {
@@ -21,7 +35,13 @@ const createWindow = () => {
   // and load the index.html of the app.
   mainWindow.loadURL('http://localhost:5173');
   //mainWindow.loadFile(path.join(__dirname, 'index.html'));
-
+  mainWindow.webContents.on('did-finish-load', () => {
+    setTimeout(() => {
+      splash.close();
+      mainWindow.show();
+    }, 1000);
+  }
+  );
 };
 
 // This method will be called when Electron has finished
