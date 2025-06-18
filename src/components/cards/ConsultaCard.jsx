@@ -8,13 +8,8 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
     const [tipoConsulta, setTipoConsulta] = useState('SELECT');
     const [tabla, setTabla] = useState('');
     const [columna, setColumna] = useState('');
-    const [consultaPersonalizada, setConsultaPersonalizada] = useState('');
 
     const construirConsultaSQL = () => {
-        if (consultaPersonalizada.trim()) {
-            return consultaPersonalizada.trim();
-        }
-
         if (tipoConsulta === 'SELECT' && tabla && columna && baseDatosSeleccionada) {
             return `SELECT ${columna} FROM ${tabla}`;
         } else if (tipoConsulta === 'DELETE' && tabla && baseDatosSeleccionada) {
@@ -28,7 +23,7 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
         const consultaSQL = construirConsultaSQL();
 
         if (!consultaSQL) {
-            alert('Por favor, completa los campos requeridos o escribe una consulta SQL personalizada');
+            alert('Por favor, completa todos los campos requeridos');
             return;
         }
 
@@ -88,7 +83,7 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
                         value={tabla}
                         onTablaChange={handleTablaChange}
                         placeholder="Selecciona tabla"
-                        className={`select ${tabla === '' ? 'select-error' : 'select-accent'}`}
+                        className="select select-accent"
                     />
 
                     <ColumnaSelector
@@ -97,24 +92,13 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
                         value={columna}
                         onColumnaChange={setColumna}
                         placeholder="Selecciona columna"
-                        className={`select ${columna === '' ? 'select-error' : 'select-accent'}`}
+                        className="select select-accent"
                         incluirAsterisco={tipoConsulta === 'SELECT'}
                     />
                 </div>
 
-
                 {/* Botón ejecutar */}
-                <div className="justify-between card-actions">
-                    {/* Input para consulta personalizada */}
-                    <div className='flex flex-row gap-2 items-center w-60'>
-                        <input
-                            type="text"
-                            placeholder="consulta sql (opcional)"
-                            className="input input-accent w-full"
-                            value={consultaPersonalizada}
-                            onChange={(e) => setConsultaPersonalizada(e.target.value)}
-                        />
-                    </div>
+                <div className="justify-end card-actions">
                     <button
                         className="btn btn-soft btn-accent"
                         onClick={handleEjecutar}
