@@ -1,15 +1,20 @@
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
-
+const path = require('path');
 module.exports = {
   packagerConfig: {
     asar: true,
+    icon: path.resolve(__dirname, 'src', 'DBIcon.ico'),
   },
   rebuildConfig: {},
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        name: 'databasefix',
+        setupIcon: path.resolve(__dirname, 'src', 'DBIcon.ico'),
+        shortcutName: 'DatabaseFix',
+      },
     },
     {
       name: '@electron-forge/maker-zip',
