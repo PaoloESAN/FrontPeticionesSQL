@@ -157,3 +157,91 @@ export function ModalConsultaPersonalizada() {
         </>
     )
 }
+
+export function ModalCrearVista() {
+    return (
+        <>
+            <Modal objeto={{
+                titulo: "Error de Validación", idModal: "modalCrearVistaErrorValidacion",
+                mensaje: "Por favor, ingresa el nombre de la vista y el script SQL."
+            }} />
+            <Modal objeto={{
+                titulo: "Error de Conexión", idModal: "modalCrearVistaError",
+                mensaje: "No se pudo conectar con el servidor. Verifica que la API esté funcionando."
+            }} />
+            <Modal objeto={{
+                titulo: "Error al crear la vista", idModal: "modalCrearVistaErrorBase",
+                mensaje: "No se pudo crear la vista. Verifica la sintaxis SQL e intenta nuevamente."
+            }} />
+            <Modal color="text-green-600" objeto={{
+                titulo: "Vista Creada Correctamente", idModal: "modalCrearVistaOk",
+                mensaje: "Se ha creado la vista exitosamente."
+            }} />
+        </>
+    )
+}
+
+export function ModalEliminarVista() {
+    return (
+        <>
+            <Modal objeto={{
+                titulo: "Error de Validación", idModal: "modalEliminarVistaErrorValidacion",
+                mensaje: "Por favor, selecciona una base de datos y una vista."
+            }} />
+            <Modal objeto={{
+                titulo: "Error de Conexión", idModal: "modalEliminarVistaError",
+                mensaje: "No se pudo conectar con el servidor. Verifica que la API esté funcionando."
+            }} />
+            <Modal objeto={{
+                titulo: "Error al eliminar la vista", idModal: "modalEliminarVistaErrorBase",
+                mensaje: "No se pudo eliminar la vista. Verifica que la vista exista."
+            }} />
+            <Modal color="text-green-600" objeto={{
+                titulo: "Vista Eliminada Correctamente", idModal: "modalEliminarVistaOk",
+                mensaje: "Se ha eliminado la vista exitosamente."
+            }} />
+            {/* Modal de confirmación personalizado */}
+            <ModalConfirmarEliminarVista />
+        </>
+    )
+}
+
+// Modal de confirmación personalizado para eliminar vista
+function ModalConfirmarEliminarVista() {
+    const cerrarModal = () => {
+        document.getElementById('modalConfirmarEliminarVista').close();
+    };
+
+    return (
+        <dialog id="modalConfirmarEliminarVista" className="modal">
+            <div className="modal-box">
+                <h3 className="font-bold text-lg text-yellow-600">⚠️ Confirmar Eliminación</h3>
+                <div className="py-4">
+                    <p className="mb-2">¿Estás seguro de que deseas eliminar esta vista?</p>
+                    <div className="flex flex-row gap-5">
+                        <p className="text-x1">
+                            <strong>Base de datos:</strong> <span className='text-amber-400' id="confirmarBaseDatosVista"></span>
+                        </p>
+                        <p className="text-x1">
+                            <strong>Vista:</strong> <span className='text-amber-400' id="confirmarVistaEliminar"></span>
+                        </p>
+                    </div>
+                </div>
+                <div className="modal-action">
+                    <button
+                        className="btn btn-outline"
+                        onClick={cerrarModal}
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        id="btnConfirmarEliminarVista"
+                        className="btn btn-error"
+                    >
+                        Eliminar Vista
+                    </button>
+                </div>
+            </div>
+        </dialog>
+    )
+}

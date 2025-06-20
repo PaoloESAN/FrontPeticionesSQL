@@ -1,5 +1,5 @@
 import React from 'react';
-import { CrearBaseCard, EliminarBaseCard, ConsultaCard, CrearTablaCard, EliminarTablaCard, ConsultaPersonalizadaCard } from './cards/index.js';
+import { CrearBaseCard, EliminarBaseCard, ConsultaCard, CrearTablaCard, EliminarTablaCard, CrearVistaCard, EliminarVistaCard, ConsultaPersonalizadaCard } from './cards/index.js';
 
 export default function Cards({ crearBase, eliminar, ejecutarConsulta }) {
     return (
@@ -8,6 +8,8 @@ export default function Cards({ crearBase, eliminar, ejecutarConsulta }) {
             <EliminarBaseCard onEliminarBase={eliminar} />
             <CrearTablaCard />
             <EliminarTablaCard />
+            <CrearVistaCard />
+            <EliminarVistaCard />
             <ConsultaCard onEjecutarConsulta={ejecutarConsulta} />
             <ConsultaPersonalizadaCard onEjecutarConsulta={ejecutarConsulta} />
         </div>
