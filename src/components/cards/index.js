@@ -10,3 +10,4 @@ export { default as EliminarTablaCard } from './EliminarTablaCard';
 export { default as CrearVistaCard } from './CrearVistaCard';
 export { default as EliminarVistaCard } from './EliminarVistaCard';
 export { default as ConsultaPersonalizadaCard } from './ConsultaPersonalizadaCard';
+export { default as DatosCard } from './DatosCard';

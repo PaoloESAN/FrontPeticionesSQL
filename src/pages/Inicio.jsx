@@ -23,11 +23,11 @@ export default function Inicio() {
             <ModalCrearBase />
             <ModalEliminarBase />
             <ModalConsultaBase />
-            <div className='text-2xl ml-8 mt-10 mr-10 mb-10'>
+            <div className='ml-8 mt-10 mr-10 mb-10'>
                 <textarea
                     id='resultadoConsulta'
                     placeholder="Resultado"
-                    className="h-60 textarea textarea-primary w-full"
+                    className="h-60 textarea textarea-primary w-full text-xl"
                     disabled />
             </div>
         </>
