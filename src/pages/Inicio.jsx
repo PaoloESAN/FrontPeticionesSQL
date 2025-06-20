@@ -9,9 +9,11 @@ export default function Inicio() {
 
     return (
         <>
-            <Navbar></Navbar>
+            <header className='fixed w-full z-50'>
+                <Navbar></Navbar>
+            </header>
             <br />
-            <p className='text-2xl ml-8'>Administrar base de datos: </p>
+            <p className='text-2xl ml-8 mt-18'>Administrar base de datos: </p>
             <br />
             <Cards
                 crearBase={crearBase}
@@ -21,11 +23,11 @@ export default function Inicio() {
             <ModalCrearBase />
             <ModalEliminarBase />
             <ModalConsultaBase />
-            <div className='text-2xl ml-8 mt-10 mr-10'>
+            <div className='text-2xl ml-8 mt-10 mr-10 mb-10'>
                 <textarea
                     id='resultadoConsulta'
                     placeholder="Resultado"
-                    className="h-50 textarea textarea-primary w-full"
+                    className="h-60 textarea textarea-primary w-full"
                     disabled />
             </div>
         </>
