@@ -37,7 +37,10 @@ const createWindow = () => {
   //mainWindow.loadFile(path.join(__dirname, 'index.html'));
   mainWindow.webContents.on('did-finish-load', () => {
     setTimeout(() => {
-      splash.close();
+      if (splash && !splash.isDestroyed()) {
+        splash.close();
+        splash = null;
+      }
       mainWindow.show();
     }, 1000);
   }

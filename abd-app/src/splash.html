@@ -16,283 +16,202 @@
       height: 100vh;
     }
 
-    /* From Uiverse.io by JkHuger */
-    .circle {
+    /* From Uiverse.io by mobinkakei */
+    #wifi-loader {
+      --background: #62abff;
+      --front-color: #4f29f0;
+      --back-color: #c3c8de;
+      --text-color: #414856;
+      width: 64px;
+      height: 64px;
+      border-radius: 50px;
       position: relative;
-      left: -100px;
-      width: 0;
-      height: 0;
-      border: 50px solid #FDD835;
-      border-radius: 50%;
-      border-right-color: transparent;
-      animation: move 5s linear 0s infinite normal forwards;
-    }
-
-    .circle:before {
-      content: "";
-      position: absolute;
-      top: -50px;
-      left: -50px;
-      width: 0;
-      height: 0;
-      border: 50px solid #FDD835;
-      border-radius: 50%;
-      border-right-color: transparent;
-      animation: chomp1 .25s ease-in-out 0s infinite normal forwards;
-    }
-
-    .circle:after {
-      content: "";
-      position: absolute;
-      top: -50px;
-      left: -50px;
-      width: 0;
-      height: 0;
-      border: 50px solid #FDD835;
-      border-radius: 50%;
-      border-right-color: transparent;
-      animation: chomp2 .25s ease-in-out 0s infinite normal forwards;
-    }
-
-    .loader {
-      position: relative;
-      top: 50px;
-      width: 300px;
-      height: 0px;
-      border-top: 10px dotted black;
-      animation: loader_4013 5s ease-in-out 0s infinite normal forwards;
-    }
-
-    .dots {
-      position: relative;
-      top: 60px;
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
-    .dot {
-      position: relative;
-      width: 10px;
-      height: 10px;
-      margin: 0 10px;
-      border-radius: 50%;
-      background: #1E88E5;
-      animation: dot1 5s linear 0s infinite none normal;
-    }
-
-    .dot:nth-child(1) {
-      animation-delay: 0s
-    }
-
-    .dot:nth-child(2) {
-      animation-delay: 0.25s
-    }
-
-    .dot:nth-child(3) {
-      animation-delay: 0.5s
-    }
-
-    .dot:nth-child(4) {
-      animation-delay: 0.75s
-    }
-
-    .dot:nth-child(5) {
-      animation-delay: 1s
-    }
-
-    .dot:nth-child(6) {
-      animation-delay: 1.25s
-    }
-
-    .dot:nth-child(7) {
-      animation-delay: 1.5s
-    }
-
-    .dot:nth-child(8) {
-      animation-delay: 1.75s
-    }
-
-    .dot:nth-child(9) {
-      animation-delay: 1.9s
-    }
-
-    .dot:nth-child(10) {
-      animation-delay: 2.1s
-    }
-
-    .dots2 {
-      position: relative;
-      top: 50px;
-      left: 10px;
+    #wifi-loader svg {
+      position: absolute;
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
-    .dot2 {
-      position: relative;
-      left: -10px;
-      width: 10px;
-      height: 10px;
-      margin: 0 10px;
-      border-radius: 50%;
-      background: #F44336;
-      opacity: 0;
-      animation: dot2 5s linear 0s infinite none normal;
+    #wifi-loader svg circle {
+      position: absolute;
+      fill: none;
+      stroke-width: 6px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transform: rotate(-100deg);
+      transform-origin: center;
     }
 
-    .dot2:nth-child(10) {
-      animation-delay: 2.5s
+    #wifi-loader svg circle.back {
+      stroke: var(--back-color);
     }
 
-    .dot2:nth-child(9) {
-      animation-delay: 2.75s
+    #wifi-loader svg circle.front {
+      stroke: var(--front-color);
     }
 
-    .dot2:nth-child(8) {
-      animation-delay: 3.0s
+    #wifi-loader svg.circle-outer {
+      height: 86px;
+      width: 86px;
     }
 
-    .dot2:nth-child(7) {
-      animation-delay: 3.25s
+    #wifi-loader svg.circle-outer circle {
+      stroke-dasharray: 62.75 188.25;
     }
 
-    .dot2:nth-child(6) {
-      animation-delay: 3.5s
+    #wifi-loader svg.circle-outer circle.back {
+      animation: circle-outer135 1.8s ease infinite 0.3s;
     }
 
-    .dot2:nth-child(5) {
-      animation-delay: 3.75s
+    #wifi-loader svg.circle-outer circle.front {
+      animation: circle-outer135 1.8s ease infinite 0.15s;
     }
 
-    .dot2:nth-child(4) {
-      animation-delay: 4.0s
+    #wifi-loader svg.circle-middle {
+      height: 60px;
+      width: 60px;
     }
 
-    .dot2:nth-child(3) {
-      animation-delay: 4.25s
+    #wifi-loader svg.circle-middle circle {
+      stroke-dasharray: 42.5 127.5;
     }
 
-    .dot2:nth-child(2) {
-      animation-delay: 4.5s
+    #wifi-loader svg.circle-middle circle.back {
+      animation: circle-middle6123 1.8s ease infinite 0.25s;
     }
 
-    .dot2:nth-child(1) {
-      animation-delay: 4.6s
+    #wifi-loader svg.circle-middle circle.front {
+      animation: circle-middle6123 1.8s ease infinite 0.1s;
     }
 
-    /* #F44336;, #1E88E5, #FDD835; */
-    @keyframes chomp1 {
+    #wifi-loader svg.circle-inner {
+      height: 34px;
+      width: 34px;
+    }
+
+    #wifi-loader svg.circle-inner circle {
+      stroke-dasharray: 22 66;
+    }
+
+    #wifi-loader svg.circle-inner circle.back {
+      animation: circle-inner162 1.8s ease infinite 0.2s;
+    }
+
+    #wifi-loader svg.circle-inner circle.front {
+      animation: circle-inner162 1.8s ease infinite 0.05s;
+    }
+
+    #wifi-loader .text {
+      position: absolute;
+      bottom: -40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-transform: lowercase;
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: 0.2px;
+    }
+
+    #wifi-loader .text::before,
+    #wifi-loader .text::after {
+      content: attr(data-text);
+    }
+
+    #wifi-loader .text::before {
+      color: var(--text-color);
+    }
+
+    #wifi-loader .text::after {
+      color: var(--front-color);
+      animation: text-animation76 3.6s ease infinite;
+      position: absolute;
+      left: 0;
+    }
+
+    @keyframes circle-outer135 {
       0% {
-        transform: rotate(0deg);
+        stroke-dashoffset: 25;
       }
 
-      50% {
-        transform: rotate(45deg);
+      25% {
+        stroke-dashoffset: 0;
+      }
+
+      65% {
+        stroke-dashoffset: 301;
+      }
+
+      80% {
+        stroke-dashoffset: 276;
       }
 
       100% {
-        transform: rotate(0deg);
+        stroke-dashoffset: 276;
       }
     }
 
-    @keyframes chomp2 {
+    @keyframes circle-middle6123 {
       0% {
-        transform: rotate(0deg);
+        stroke-dashoffset: 17;
+      }
+
+      25% {
+        stroke-dashoffset: 0;
+      }
+
+      65% {
+        stroke-dashoffset: 204;
+      }
+
+      80% {
+        stroke-dashoffset: 187;
+      }
+
+      100% {
+        stroke-dashoffset: 187;
+      }
+    }
+
+    @keyframes circle-inner162 {
+      0% {
+        stroke-dashoffset: 9;
+      }
+
+      25% {
+        stroke-dashoffset: 0;
+      }
+
+      65% {
+        stroke-dashoffset: 106;
+      }
+
+      80% {
+        stroke-dashoffset: 97;
+      }
+
+      100% {
+        stroke-dashoffset: 97;
+      }
+    }
+
+    @keyframes text-animation76 {
+      0% {
+        clip-path: inset(0 100% 0 0);
       }
 
       50% {
-        transform: rotate(-45deg);
+        clip-path: inset(0);
       }
 
       100% {
-        transform: rotate(0deg);
-      }
-    }
-
-    @keyframes move {
-
-      0%,
-      100% {
-        left: -100px;
-      }
-
-      0%,
-      48% {
-        transform: rotateY(0deg);
-      }
-
-      50%,
-      100% {
-        transform: rotateY(180deg);
-      }
-
-      50% {
-        left: 100%;
-      }
-    }
-
-    @keyframes loader_4013 {
-
-      0%,
-      100% {
-        border-top: 10px dotted #1E88E5;
-      }
-
-      0%,
-      48% {
-        border-top: 10px dotted #1E88E5;
-      }
-
-      50%,
-      100% {
-        border-top: 10px dotted #F44336;
-      }
-
-      50% {
-        border-top: 10px dotted #F44336;
-      }
-    }
-
-    @keyframes dot1 {
-
-      0%,
-      4% {
-        background: #1E88E5;
-        opacity: 1;
-      }
-
-      5%,
-      94% {
-        background: #F44336;
-        opacity: 0;
-      }
-
-      95%,
-      100% {
-        background: #1E88E5;
-        opacity: 1;
-      }
-    }
-
-    @keyframes dot2 {
-
-      0%,
-      4% {
-        background: #F44336;
-        opacity: 1;
-      }
-
-      5%,
-      94% {
-        opacity: 0;
-      }
-
-      95%,
-      100% {
-        background: #F44336;
-        opacity: 1;
+        clip-path: inset(0 0 0 100%);
       }
     }
   </style>
@@ -301,34 +220,22 @@
 <body>
   <!-- From Uiverse.io by JkHuger -->
 
-  <main id="container">
-
-    <div class="dots">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-    </div>
-    <div class="dots2">
-      <div class="dot2"></div>
-      <div class="dot2"></div>
-      <div class="dot2"></div>
-      <div class="dot2"></div>
-      <div class="dot2"></div>
-      <div class="dot2"></div>
-      <div class="dot2"></div>
-      <div class="dot2"></div>
-      <div class="dot2"></div>
-      <div class="dot2"></div>
-    </div>
-    <div class="circle"></div>
-  </main>
+  <div id="wifi-loader">
+    <svg class="circle-outer" viewBox="0 0 86 86">
+      <circle class="back" cx="43" cy="43" r="40"></circle>
+      <circle class="front" cx="43" cy="43" r="40"></circle>
+      <circle class="new" cx="43" cy="43" r="40"></circle>
+    </svg>
+    <svg class="circle-middle" viewBox="0 0 60 60">
+      <circle class="back" cx="30" cy="30" r="27"></circle>
+      <circle class="front" cx="30" cy="30" r="27"></circle>
+    </svg>
+    <svg class="circle-inner" viewBox="0 0 34 34">
+      <circle class="back" cx="17" cy="17" r="14"></circle>
+      <circle class="front" cx="17" cy="17" r="14"></circle>
+    </svg>
+    <div class="text" data-text="Searching"></div>
+  </div>
   <h2>Cargando app...</h2>
 
 
