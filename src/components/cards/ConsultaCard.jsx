@@ -6,22 +6,18 @@ import { ModalConsultaBase } from '../AllModal';
 
 export default function ConsultaCard({ onEjecutarConsulta }) {
     const [baseDatosSeleccionada, setBaseDatosSeleccionada] = useState('');
-    const [tipoConsulta, setTipoConsulta] = useState('SELECT');
     const [tabla, setTabla] = useState('');
     const [columna, setColumna] = useState('');
 
     const construirConsultaSQL = () => {
-        if (tipoConsulta === 'SELECT' && tabla && columna && baseDatosSeleccionada) {
+        if (tabla && columna && baseDatosSeleccionada) {
             return `SELECT ${columna} FROM ${tabla}`;
-        } else if (tipoConsulta === 'DELETE' && tabla && baseDatosSeleccionada) {
-            return `DELETE FROM ${tabla}`;
         }
-
         return '';
-    };
+    }; const handleEjecutar = async () => {
+        const consultaSQL = construirConsultaSQL();
 
-    const handleEjecutar = async () => {
-        const consultaSQL = construirConsultaSQL(); if (!consultaSQL) {
+        if (!consultaSQL) {
             document.getElementById('modalConsultaErrorBase').showModal();
             return;
         }
@@ -34,7 +30,25 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
         console.log('Ejecutando consulta:', consultaSQL);
         console.log('Base de datos:', baseDatosSeleccionada);
 
-        await onEjecutarConsulta(consultaSQL, baseDatosSeleccionada);
+        // Siempre usar el nuevo endpoint para consultas SELECT
+        try {
+            const response = await fetch(`http://localhost:8080/api/consultaSelect?bd=${baseDatosSeleccionada}&sql=${encodeURIComponent(consultaSQL)}`, {
+                method: 'GET',
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // Llamar a la función del padre para procesar los resultados
+                await onEjecutarConsulta(consultaSQL, baseDatosSeleccionada, data);
+            } else {
+                document.getElementById('modalConsultaErrorBase').showModal();
+                const errorData = await response.text();
+                console.error('Error en la consulta:', errorData);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('modalConsultaError').showModal();
+        }
     };
 
     const handleBaseDatosChange = (nuevaBase) => {
@@ -63,20 +77,11 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
                         placeholder="Selecciona base de datos"
                         className="select select-accent w-full"
                     />
-                </div>
-
-                {/* Selectores de consulta */}
+                </div>                {/* Selectores de consulta */}
                 <div className='flex flex-row gap-2 items-center'>
-                    <select
-                        className="select select-accent"
-                        value={tipoConsulta}
-                        onChange={(e) => setTipoConsulta(e.target.value)}
-                        disabled={!baseDatosSeleccionada}
-                    >
-                        <option value="" disabled>Tipo de consulta</option>
-                        <option value="SELECT">SELECT</option>
-                        <option value="DELETE">DELETE</option>
-                    </select>
+                    <div className="bg-accent text-accent-content px-4 py-2 rounded-lg font-semibold text-sm">
+                        SELECT
+                    </div>
 
                     <TablaSelector
                         baseDatos={baseDatosSeleccionada}
@@ -93,15 +98,14 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
                         onColumnaChange={setColumna}
                         placeholder="Selecciona columna"
                         className="select select-accent"
-                        incluirAsterisco={tipoConsulta === 'SELECT'}
+                        incluirAsterisco={true}
                     />
-                </div>
-
-                {/* Botón ejecutar */}
+                </div>                {/* Botón ejecutar */}
                 <div className="justify-end card-actions">
                     <button
                         className="btn btn-soft btn-accent"
                         onClick={handleEjecutar}
+                        disabled={!baseDatosSeleccionada || !tabla || !columna}
                     >
                         Ejecutar
                     </button>                </div>

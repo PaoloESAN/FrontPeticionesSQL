@@ -17,8 +17,120 @@ import {
 } from '../components/cards/index.js'
 
 export default function Inicio() {
-    const { crearBase, eliminarBase, ejecutarConsulta } = useBaseDatos();
     const [pestanaActiva, setPestanaActiva] = useState('bases-datos');
+    const [datosTabla, setDatosTabla] = useState([]);
+    const [columnasTabla, setColumnasTabla] = useState([]);
+    const [consultaEjecutada, setConsultaEjecutada] = useState(false);    // Función personalizada para manejar consultas con resultados de tabla
+    const ejecutarConsultaConTabla = async (consultaSQL, baseDatosSeleccionada, datosDirectos = null) => {
+        try {
+            let data;
+
+            if (datosDirectos) {
+                // Si recibimos datos directos del nuevo endpoint, usarlos
+                data = datosDirectos;
+            } else {
+                // Si no, usar el endpoint original
+                const response = await fetch(`http://localhost:8080/api/consultaBase?nombre=${baseDatosSeleccionada}&sql=${encodeURIComponent(consultaSQL)}`, {
+                    method: 'POST',
+                });
+
+                if (!response.ok) {
+                    document.getElementById('modalConsultaErrorBase')?.showModal();
+                    const errorData = await response.json();
+                    console.error('Error en la consulta:', errorData);
+                    return;
+                }
+
+                data = await response.json();
+            }            // Si estamos en consultas o vistas, procesar para tabla
+            if (pestanaActiva === 'consultas' || pestanaActiva === 'vistas') {
+                console.log('Procesando datos para tabla:', { datosDirectos: !!datosDirectos, data, pestanaActiva });
+
+                // Marcar que se ejecutó una consulta
+                setConsultaEjecutada(true);
+
+                if (datosDirectos) {
+                    // Datos directos del nuevo endpoint - verificar si tiene formato {respuesta: "..."}
+                    console.log('Datos directos recibidos:', data);
+
+                    let resultados;
+
+                    if (data.respuesta) {
+                        // El endpoint devuelve {respuesta: "[...]"} - parsear el string JSON
+                        try {
+                            resultados = JSON.parse(data.respuesta);
+                            console.log('Datos parseados desde respuesta:', resultados);
+                        } catch (parseError) {
+                            console.error('Error al parsear respuesta:', parseError);
+                            resultados = [];
+                        }
+                    } else if (Array.isArray(data)) {
+                        // El endpoint devuelve directamente un array
+                        resultados = data;
+                        console.log('Datos directos como array:', resultados);
+                    } else {
+                        console.log('Formato de datos no reconocido:', data);
+                        resultados = [];
+                    }
+
+                    if (Array.isArray(resultados) && resultados.length > 0) {
+                        // Extraer columnas del primer objeto
+                        const columnas = Object.keys(resultados[0]);
+                        console.log('Columnas extraídas:', columnas);
+                        setColumnasTabla(columnas);
+                        setDatosTabla(resultados);
+                        console.log('Estados actualizados - columnas:', columnas, 'datos:', resultados);
+                    } else if (Array.isArray(resultados) && resultados.length === 0) {
+                        console.log('Array vacío recibido');
+                        setColumnasTabla([]);
+                        setDatosTabla([]);
+                    } else {
+                        console.log('Resultados no son array o están vacíos:', resultados);
+                        setColumnasTabla([]);
+                        setDatosTabla([]);
+                    }
+                } else {
+                    // Procesar respuesta del endpoint original
+                    try {
+                        // Intentar parsear la respuesta como JSON para datos tabulares
+                        const resultados = JSON.parse(data.respuesta);
+
+                        if (Array.isArray(resultados) && resultados.length > 0) {
+                            // Extraer columnas del primer objeto
+                            const columnas = Object.keys(resultados[0]);
+                            setColumnasTabla(columnas);
+                            setDatosTabla(resultados);
+                        } else {
+                            setColumnasTabla([]);
+                            setDatosTabla([]);
+                        }
+                    } catch {
+                        // Si no se puede parsear como JSON, mostrar en textarea
+                        const resultado = document.getElementById('resultadoConsulta');
+                        if (resultado) {
+                            resultado.value = data.respuesta;
+                        }
+                        setColumnasTabla([]);
+                        setDatosTabla([]);
+                    }
+                }
+            } else {
+                // Para otras pestañas, usar textarea como antes
+                const resultado = document.getElementById('resultadoConsulta');
+                if (resultado) {
+                    resultado.value = datosDirectos ? JSON.stringify(data, null, 2) : data.respuesta;
+                }
+            }
+
+            setConsultaEjecutada(true);
+            console.log('Consulta ejecutada:', data);
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('modalConsultaError')?.showModal();
+        }
+    };
+
+    const { crearBase, eliminarBase } = useBaseDatos();
 
     const renderContenido = () => {
         switch (pestanaActiva) {
@@ -42,14 +154,14 @@ export default function Inicio() {
                     <div className='flex flex-wrap gap-4'>
                         <CrearVistaCard />
                         <EliminarVistaCard />
-                        <EjecutarVistaCard onEjecutarConsulta={ejecutarConsulta} />
+                        <EjecutarVistaCard onEjecutarConsulta={ejecutarConsultaConTabla} />
                     </div>
                 );
             case 'consultas':
                 return (
                     <div className='flex flex-wrap gap-4'>
-                        <ConsultaCard onEjecutarConsulta={ejecutarConsulta} />
-                        <ConsultaPersonalizadaCard onEjecutarConsulta={ejecutarConsulta} />
+                        <ConsultaCard onEjecutarConsulta={ejecutarConsultaConTabla} />
+                        <ConsultaPersonalizadaCard onEjecutarConsulta={ejecutarConsultaConTabla} />
                     </div>
                 );
             default:
@@ -59,8 +171,102 @@ export default function Inicio() {
 
     const navegarA = (pestaña) => {
         setPestanaActiva(pestaña);
+        // Limpiar datos de tabla cuando se cambie de pestaña
+        setDatosTabla([]);
+        setColumnasTabla([]);
+        setConsultaEjecutada(false);
         // Cerrar el drawer después de seleccionar
         document.getElementById('sidebar-drawer').checked = false;
+    }; const renderResultados = () => {
+        const mostrarTabla = pestanaActiva === 'consultas' || pestanaActiva === 'vistas';
+
+        console.log('renderResultados:', {
+            mostrarTabla,
+            pestanaActiva,
+            columnasTabla: columnasTabla.length,
+            datosTabla: datosTabla.length
+        });
+
+        if (mostrarTabla) {
+            return (
+                <div className="overflow-x-auto">
+                    <table className="table table-xs table-pin-rows table-pin-cols">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                {columnasTabla.length > 0 ? (
+                                    columnasTabla.map((columna, index) => (
+                                        <td key={index}>{columna}</td>
+                                    ))
+                                ) : (
+                                    <>
+                                        <td>Columna 1</td>
+                                        <td>Columna 2</td>
+                                        <td>Columna 3</td>
+                                    </>
+                                )}
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {datosTabla.length > 0 ? (
+                                datosTabla.map((fila, index) => (
+                                    <tr key={index}>
+                                        <th>{index + 1}</th>
+                                        {columnasTabla.length > 0 ? (
+                                            columnasTabla.map((columna, colIndex) => (
+                                                <td key={colIndex}>{fila[columna] || '-'}</td>
+                                            ))
+                                        ) : (
+                                            Object.values(fila).map((valor, colIndex) => (
+                                                <td key={colIndex}>{valor || '-'}</td>
+                                            ))
+                                        )}
+                                        <th>{index + 1}</th>
+                                    </tr>
+                                ))) : (
+                                <tr>
+                                    <th>-</th>
+                                    <td colSpan={columnasTabla.length > 0 ? columnasTabla.length : 3}>
+                                        {consultaEjecutada
+                                            ? "No se encontraron datos para esta consulta"
+                                            : "Los resultados de las consultas aparecerán aquí..."
+                                        }
+                                    </td>
+                                    <th>-</th>
+                                </tr>
+                            )}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th></th>
+                                {columnasTabla.length > 0 ? (
+                                    columnasTabla.map((columna, index) => (
+                                        <td key={index}>{columna}</td>
+                                    ))
+                                ) : (
+                                    <>
+                                        <td>Columna 1</td>
+                                        <td>Columna 2</td>
+                                        <td>Columna 3</td>
+                                    </>
+                                )}
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            );
+        }
+
+        return (
+            <textarea
+                id='resultadoConsulta'
+                placeholder="Los resultados de las consultas aparecerán aquí..."
+                className="h-60 textarea textarea-primary w-full text-lg"
+                disabled
+            />
+        );
     };
 
     const getTitulo = () => {
@@ -135,15 +341,10 @@ export default function Inicio() {
                         {renderContenido()}
                     </div>
 
-                    {/* Textarea de resultados */}
+                    {/* Resultados dinámicos */}
                     <div className="mt-8">
                         <h2 className="text-2xl font-semibold mb-4 text-gray-700">Resultados:</h2>
-                        <textarea
-                            id='resultadoConsulta'
-                            placeholder="Los resultados de las consultas aparecerán aquí..."
-                            className="h-60 textarea textarea-primary w-full text-lg"
-                            disabled
-                        />
+                        {renderResultados()}
                     </div>
                 </main>
             </div>

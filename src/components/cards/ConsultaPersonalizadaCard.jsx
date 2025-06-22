@@ -21,7 +21,29 @@ export default function ConsultaPersonalizadaCard({ onEjecutarConsulta }) {
             console.log('Ejecutando consulta personalizada:', consultaSQL);
             console.log('Base de datos:', baseDatosSeleccionada);
 
-            await onEjecutarConsulta(consultaSQL.trim(), baseDatosSeleccionada);
+            const consultaLimpia = consultaSQL.trim();
+            // Detectar si es una consulta SELECT
+            const esSELECT = consultaLimpia.toUpperCase().startsWith('SELECT');
+
+            if (esSELECT) {
+                // Usar el nuevo endpoint para consultas SELECT
+                const response = await fetch(`http://localhost:8080/api/consultaSelect?bd=${baseDatosSeleccionada}&sql=${encodeURIComponent(consultaLimpia)}`, {
+                    method: 'GET',
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Llamar a la función del padre para procesar los resultados
+                    await onEjecutarConsulta(consultaLimpia, baseDatosSeleccionada, data);
+                } else {
+                    document.getElementById('modalConsultaPersonalizadaError').showModal();
+                    const errorData = await response.text();
+                    console.error('Error en la consulta:', errorData);
+                }
+            } else {
+                // Para otras consultas (INSERT, UPDATE, DELETE), usar el endpoint original
+                await onEjecutarConsulta(consultaLimpia, baseDatosSeleccionada);
+            }
         } catch (error) {
             console.error('Error al ejecutar consulta:', error);
             document.getElementById('modalConsultaPersonalizadaError').showModal();
