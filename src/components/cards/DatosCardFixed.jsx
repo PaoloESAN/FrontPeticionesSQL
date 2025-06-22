@@ -61,7 +61,7 @@ export default function DatosCard() {
                         <button
                             className="btn btn-soft btn-success"
                             onClick={handleObtenerDatos}
-                            disabled={isLoading || !baseDatosSeleccionada}
+                            disabled={isLoading}
                         >
                             {isLoading ? (
                                 <>
