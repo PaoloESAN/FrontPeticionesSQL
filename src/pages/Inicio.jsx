@@ -7,6 +7,7 @@ import {
     EliminarBaseCard,
     CrearTablaCard,
     EliminarTablaCard,
+    InsertarDatosCard,
     CrearVistaCard,
     EliminarVistaCard,
     ConsultaCard,
@@ -27,12 +28,12 @@ export default function Inicio() {
                         <EliminarBaseCard onEliminarBase={eliminarBase} />
                         <DatosCard />
                     </div>
-                );
-            case 'tablas':
+                ); case 'tablas':
                 return (
                     <div className='flex flex-wrap gap-4'>
                         <CrearTablaCard />
                         <EliminarTablaCard />
+                        <InsertarDatosCard />
                     </div>
                 );
             case 'vistas':
