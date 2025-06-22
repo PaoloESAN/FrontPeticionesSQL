@@ -10,6 +10,7 @@ import {
     InsertarDatosCard,
     CrearVistaCard,
     EliminarVistaCard,
+    EjecutarVistaCard,
     ConsultaCard,
     ConsultaPersonalizadaCard,
     DatosCard
@@ -41,6 +42,7 @@ export default function Inicio() {
                     <div className='flex flex-wrap gap-4'>
                         <CrearVistaCard />
                         <EliminarVistaCard />
+                        <EjecutarVistaCard onEjecutarConsulta={ejecutarConsulta} />
                     </div>
                 );
             case 'consultas':
@@ -118,7 +120,7 @@ export default function Inicio() {
             {/* Contenido principal */}
             <div className="drawer-content flex flex-col min-h-screen">
                 {/* Navbar fijo */}
-                <header className="sticky top-0">
+                <header className="sticky top-0 z-10">
                     <Navbar />
                 </header>
 
@@ -147,7 +149,7 @@ export default function Inicio() {
             </div>
 
             {/* Sidebar */}
-            <div className="drawer-side">
+            <div className="drawer-side z-20">
                 <label htmlFor="sidebar-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
                 <aside className="bg-base-200 text-base-content min-h-full w-60">
                     {/* Header del sidebar */}

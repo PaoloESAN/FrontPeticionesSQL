@@ -19,11 +19,22 @@ export default function ColumnaSelector({
         }
 
         try {
-            setIsLoading(true);
-            const response = await fetch(`http://localhost:8080/api/columnas?tabla=${nombreTabla}&bd=${nombreBase}`);
+            setIsLoading(true); const response = await fetch(`http://localhost:8080/api/columnas?tabla=${nombreTabla}&bd=${nombreBase}`);
             if (response.ok) {
                 const data = await response.json();
-                setColumnas(Array.isArray(data) ? data : []);
+                // Adaptar la nueva estructura de datos
+                if (Array.isArray(data) && data.length > 0) {
+                    // Si los elementos son objetos con la nueva estructura, extraer solo los nombres
+                    const columnasProcessadas = data.map(columna => {
+                        if (typeof columna === 'object' && columna.nombre) {
+                            return columna.nombre;
+                        }
+                        return columna; // Por compatibilidad con la estructura anterior
+                    });
+                    setColumnas(columnasProcessadas);
+                } else {
+                    setColumnas([]);
+                }
             } else {
                 console.error('Error al obtener columnas:', response.status);
                 setColumnas([]);

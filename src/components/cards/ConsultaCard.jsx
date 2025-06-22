@@ -71,6 +71,7 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
                         className="select select-accent"
                         value={tipoConsulta}
                         onChange={(e) => setTipoConsulta(e.target.value)}
+                        disabled={!baseDatosSeleccionada}
                     >
                         <option value="" disabled>Tipo de consulta</option>
                         <option value="SELECT">SELECT</option>
