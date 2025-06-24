@@ -245,3 +245,68 @@ function ModalConfirmarEliminarVista() {
         </dialog>
     )
 }
+
+export function ModalEliminarProcedure() {
+    return (
+        <>
+            <Modal objeto={{
+                titulo: "Error de Validación", idModal: "modalEliminarProcedureErrorValidacion",
+                mensaje: "Por favor, selecciona una base de datos y un stored procedure."
+            }} />
+            <Modal objeto={{
+                titulo: "Error de Conexión", idModal: "modalEliminarProcedureError",
+                mensaje: "No se pudo conectar con el servidor. Verifica que la API esté funcionando."
+            }} />
+            <Modal objeto={{
+                titulo: "Error al eliminar el procedure", idModal: "modalEliminarProcedureErrorBase",
+                mensaje: "No se pudo eliminar el stored procedure. Verifica que el procedure exista."
+            }} />
+            <Modal color="text-green-600" objeto={{
+                titulo: "Procedure Eliminado Correctamente", idModal: "modalEliminarProcedureOk",
+                mensaje: "Se ha eliminado el stored procedure exitosamente."
+            }} />
+            {/* Modal de confirmación personalizado */}
+            <ModalConfirmarEliminarProcedure />
+        </>
+    )
+}
+
+// Modal de confirmación personalizado para eliminar procedure
+function ModalConfirmarEliminarProcedure() {
+    const cerrarModal = () => {
+        document.getElementById('modalConfirmarEliminarProcedure').close();
+    };
+
+    return (
+        <dialog id="modalConfirmarEliminarProcedure" className="modal">
+            <div className="modal-box">
+                <h3 className="font-bold text-lg text-yellow-600">⚠️ Confirmar Eliminación</h3>
+                <div className="py-4">
+                    <p className="mb-2">¿Estás seguro de que deseas eliminar este stored procedure?</p>
+                    <div className="flex flex-row gap-5">
+                        <p className="text-x1">
+                            <strong>Base de datos:</strong> <span className='text-amber-400' id="confirmarBaseDatosProcedure"></span>
+                        </p>
+                        <p className="text-x1">
+                            <strong>Procedure:</strong> <span className='text-amber-400' id="confirmarProcedureEliminar"></span>
+                        </p>
+                    </div>
+                </div>
+                <div className="modal-action">
+                    <button
+                        className="btn btn-outline"
+                        onClick={cerrarModal}
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        id="btnConfirmarEliminarProcedure"
+                        className="btn btn-error"
+                    >
+                        Eliminar Procedure
+                    </button>
+                </div>
+            </div>
+        </dialog>
+    )
+}
