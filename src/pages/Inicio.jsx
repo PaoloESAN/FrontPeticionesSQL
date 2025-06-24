@@ -5,6 +5,7 @@ import { useBaseDatos } from '../hooks/useBaseDatos'
 import {
     CrearBaseCard,
     EliminarBaseCard,
+    ListarBasesCard,
     CrearTablaCard,
     EliminarTablaCard,
     InsertarDatosCard,
@@ -142,6 +143,7 @@ export default function Inicio() {
                     <div className='flex flex-wrap gap-4'>
                         <CrearBaseCard onCrearBase={crearBase} />
                         <EliminarBaseCard onEliminarBase={eliminarBase} />
+                        <ListarBasesCard />
                         <DatosCard />
                     </div>
                 ); case 'tablas':

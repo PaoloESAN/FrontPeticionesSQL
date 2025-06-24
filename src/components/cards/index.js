@@ -5,6 +5,7 @@ export { default as VistaSelector } from './VistaSelector';
 export { default as ProcedureSelector } from './ProcedureSelector';
 export { default as CrearBaseCard } from './CrearBaseCard';
 export { default as EliminarBaseCard } from './EliminarBaseCard';
+export { default as ListarBasesCard } from './ListarBasesCard';
 export { default as ConsultaCard } from './ConsultaCard';
 export { default as CrearTablaCard } from './CrearTablaCard';
 export { default as EliminarTablaCard } from './EliminarTablaCard';
