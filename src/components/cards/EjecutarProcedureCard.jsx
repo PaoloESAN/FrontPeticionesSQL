@@ -70,7 +70,7 @@ export default function EjecutarProcedureCard({ onEjecutarConsulta }) {
                             value={baseDatosSeleccionada}
                             onBaseDatosChange={handleBaseDatosChange}
                             placeholder="Selecciona base de datos"
-                            className="select select-secondary flex-1"
+                            className="select select-accent flex-1"
                         />
                     </div>
 
@@ -81,7 +81,7 @@ export default function EjecutarProcedureCard({ onEjecutarConsulta }) {
                             value={procedureSeleccionado}
                             onProcedureChange={setProcedureSeleccionado}
                             placeholder="Selecciona procedure"
-                            className="select select-secondary flex-1"
+                            className="select select-accent flex-1"
                         />
                     </div>
 

@@ -58,7 +58,7 @@ export default function EjecutarVistaCard({ onEjecutarConsulta }) {
 
     return (
         <>
-            <div className="card w-96 card-md shadow-lg bg-purple-900">
+            <div className="card w-96 card-md shadow-lg bg-indigo-900">
                 <div className="card-body space-y-4">
                     <h2 className="card-title text-white">Ejecutar Vista:</h2>
 
@@ -68,7 +68,7 @@ export default function EjecutarVistaCard({ onEjecutarConsulta }) {
                             value={baseDatosSeleccionada}
                             onBaseDatosChange={handleBaseDatosChange}
                             placeholder="Selecciona base de datos"
-                            className="select select-secondary flex-1"
+                            className="select select-accent flex-1"
                         />
                     </div>
 
@@ -79,7 +79,7 @@ export default function EjecutarVistaCard({ onEjecutarConsulta }) {
                             value={vistaSeleccionada}
                             onVistaChange={setVistaSeleccionada}
                             placeholder="Selecciona vista"
-                            className="select select-secondary flex-1"
+                            className="select select-accent flex-1"
                         />
                     </div>
 

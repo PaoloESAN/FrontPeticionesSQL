@@ -32,7 +32,7 @@ export default function CrearVistaCard() {
                         value={baseDatosSeleccionada}
                         onBaseDatosChange={setBaseDatosSeleccionada}
                         placeholder="Selecciona base de datos"
-                        className="select select-success flex-1"
+                        className="select select-primary flex-1"
                     />
                 </div>
 

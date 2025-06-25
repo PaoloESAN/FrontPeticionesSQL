@@ -89,7 +89,7 @@ export default function EliminarProcedureCard() {
     };
 
     return (
-        <div className="card w-96 card-md shadow-lg bg-red-900">
+        <div className="card w-96 card-md shadow-lg bg-indigo-900">
             <div className="card-body space-y-4">
                 <h2 className="card-title text-white">Eliminar Procedure:</h2>
 

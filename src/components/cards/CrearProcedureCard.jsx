@@ -21,7 +21,7 @@ export default function CrearProcedureCard() {
     };
 
     return (
-        <div className="card w-96 card-md shadow-lg bg-purple-900">
+        <div className="card w-96 card-md shadow-lg bg-indigo-900">
             <div className="card-body space-y-4">
                 <h2 className="card-title text-white">Crear Procedure:</h2>
 
@@ -31,7 +31,7 @@ export default function CrearProcedureCard() {
                         value={baseDatosSeleccionada}
                         onBaseDatosChange={setBaseDatosSeleccionada}
                         placeholder="Selecciona base de datos"
-                        className="select select-secondary flex-1"
+                        className="select select-primary flex-1"
                     />
                 </div>
 
