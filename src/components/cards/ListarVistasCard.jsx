@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import BaseDatosSelector from './BaseDatosSelector';
 
-export default function DatosCard({ onMostrarEnTextarea }) {
+export default function ListarVistasCard({ onMostrarEnTextarea }) {
     const [baseDatosSeleccionada, setBaseDatosSeleccionada] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleObtenerDatos = async () => {
+    const handleListarVistas = async () => {
         if (!baseDatosSeleccionada) {
-            document.getElementById('modalDatosError').showModal();
+            document.getElementById('modalListarVistasError').showModal();
             return;
         }
 
@@ -19,25 +19,42 @@ export default function DatosCard({ onMostrarEnTextarea }) {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`http://localhost:8080/api/datos?bd=${baseDatosSeleccionada}`);
+            const response = await fetch(`http://localhost:8080/api/vistas?bd=${baseDatosSeleccionada}`);
 
             if (!response.ok) {
                 throw new Error(`Error: ${response.status} ${response.statusText}`);
             }
 
-            const data = await response.text();
+            const data = await response.json();
+
+            // Formatear los datos para mostrar en el textarea
+            let resultado = '';
+            if (Array.isArray(data) && data.length > 0) {
+                resultado = `=== VISTAS EN LA BASE DE DATOS "${baseDatosSeleccionada}" ===\n\n`;
+                data.forEach((vista, index) => {
+                    resultado += `${index + 1}. ${vista}\n`;
+                });
+                resultado += `\nTotal de vistas: ${data.length}`;
+            } else {
+                resultado = `No se encontraron vistas en la base de datos "${baseDatosSeleccionada}".`;
+            }
 
             // Mostrar el resultado
             const textarea = document.getElementById('resultadoConsulta');
             if (textarea) {
-                textarea.value = data;
+                textarea.value = resultado;
             }
 
         } catch (error) {
-            console.error('Error al obtener datos:', error);
+            console.error('Error al listar vistas:', error);
+            // Mostrar error en el textarea
             const textarea = document.getElementById('resultadoConsulta');
             if (textarea) {
-                textarea.value = `Error al obtener datos de la base de datos: ${error.message}`;
+                textarea.value = `Error al obtener la lista de vistas: ${error.message}`;
+            }
+            // Usar la función prop también para errores
+            if (onMostrarEnTextarea) {
+                onMostrarEnTextarea();
             }
         } finally {
             setIsLoading(false);
@@ -46,9 +63,9 @@ export default function DatosCard({ onMostrarEnTextarea }) {
 
     return (
         <>
-            <div className="card w-96 card-md shadow-lg bg-green-900">
+            <div className="card w-96 card-md shadow-lg bg-teal-900">
                 <div className="card-body space-y-4">
-                    <h2 className="card-title text-white">Todos los datos:</h2>
+                    <h2 className="card-title text-white">Listar Vistas:</h2>
 
                     {/* Selector de base de datos */}
                     <div className='flex flex-row gap-2 items-center'>
@@ -56,15 +73,15 @@ export default function DatosCard({ onMostrarEnTextarea }) {
                             value={baseDatosSeleccionada}
                             onBaseDatosChange={setBaseDatosSeleccionada}
                             placeholder="Selecciona base de datos"
-                            className="select select-success w-full"
+                            className="select select-primary flex-1"
                         />
                     </div>
 
-                    {/* Botón obtener datos */}
+                    {/* Botón para listar vistas */}
                     <div className="justify-end card-actions">
                         <button
-                            className="btn btn-soft btn-success"
-                            onClick={handleObtenerDatos}
+                            className="btn btn-soft btn-primary"
+                            onClick={handleListarVistas}
                             disabled={isLoading || !baseDatosSeleccionada}
                         >
                             {isLoading ? (
@@ -73,7 +90,7 @@ export default function DatosCard({ onMostrarEnTextarea }) {
                                     Obteniendo...
                                 </>
                             ) : (
-                                'Obtener Datos'
+                                'Listar Vistas'
                             )}
                         </button>
                     </div>
@@ -81,14 +98,17 @@ export default function DatosCard({ onMostrarEnTextarea }) {
             </div>
 
             {/* Modal de error */}
-            <dialog id="modalDatosError" className="modal">
+            <dialog id="modalListarVistasError" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg">Error</h3>
-                    <p className="py-4">Por favor, selecciona una base de datos para obtener los datos.</p>
+                    <h3 className="font-bold text-lg text-red-600">❌ Error</h3>
+                    <p className="py-4">Por favor, selecciona una base de datos para listar las vistas.</p>
                     <div className="modal-action">
-                        <form method="dialog">
-                            <button className="btn">Cerrar</button>
-                        </form>
+                        <button
+                            className="btn"
+                            onClick={() => document.getElementById('modalListarVistasError').close()}
+                        >
+                            Cerrar
+                        </button>
                     </div>
                 </div>
             </dialog>

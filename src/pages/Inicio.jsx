@@ -8,12 +8,15 @@ import {
     ListarBasesCard,
     CrearTablaCard,
     EliminarTablaCard,
+    ListarTablasCard,
     InsertarDatosCard,
     CrearVistaCard,
     EliminarVistaCard,
+    ListarVistasCard,
     EjecutarVistaCard,
     CrearProcedureCard,
     EliminarProcedureCard,
+    ListarProceduresCard,
     EjecutarProcedureCard,
     ConsultaCard,
     ConsultaPersonalizadaCard,
@@ -24,7 +27,30 @@ export default function Inicio() {
     const [pestanaActiva, setPestanaActiva] = useState('bases-datos');
     const [datosTabla, setDatosTabla] = useState([]);
     const [columnasTabla, setColumnasTabla] = useState([]);
-    const [consultaEjecutada, setConsultaEjecutada] = useState(false);    // Función personalizada para manejar consultas con resultados de tabla
+    const [consultaEjecutada, setConsultaEjecutada] = useState(false);
+    const [mostrarTabla, setMostrarTabla] = useState(false); // Nuevo estado para controlar tabla vs textarea
+
+    // Función para manejar acciones que deben mostrar textarea (listar)
+    const mostrarEnTextarea = async () => {
+        // Solo configurar estados para mostrar textarea
+        setMostrarTabla(false);
+        setConsultaEjecutada(true);
+
+        // Limpiar datos de tabla
+        setDatosTabla([]);
+        setColumnasTabla([]);
+
+        // Esperar a que React actualice el DOM
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        // Limpiar el textarea y mostrar "Cargando..."
+        const textarea = document.getElementById('resultadoConsulta');
+        if (textarea) {
+            textarea.value = 'Cargando...';
+        }
+    };
+
+    // Función personalizada para manejar consultas con resultados de tabla
     const ejecutarConsultaConTabla = async (consultaSQL, baseDatosSeleccionada, datosDirectos = null) => {
         try {
             let data;
@@ -50,8 +76,9 @@ export default function Inicio() {
             if (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures') {
                 console.log('Procesando datos para tabla:', { datosDirectos: !!datosDirectos, data, pestanaActiva });
 
-                // Marcar que se ejecutó una consulta
+                // Marcar que se ejecutó una consulta y que se debe mostrar tabla
                 setConsultaEjecutada(true);
+                setMostrarTabla(true);
 
                 if (datosDirectos) {
                     // Datos directos del nuevo endpoint - verificar si tiene formato {respuesta: "..."}
@@ -143,8 +170,7 @@ export default function Inicio() {
                     <div className='flex flex-wrap gap-4'>
                         <CrearBaseCard onCrearBase={crearBase} />
                         <EliminarBaseCard onEliminarBase={eliminarBase} />
-                        <ListarBasesCard />
-                        <DatosCard />
+                        <ListarBasesCard onMostrarEnTextarea={mostrarEnTextarea} />
                     </div>
                 ); case 'tablas':
                 return (
@@ -152,6 +178,7 @@ export default function Inicio() {
                         <CrearTablaCard />
                         <EliminarTablaCard />
                         <InsertarDatosCard />
+                        <ListarTablasCard onMostrarEnTextarea={mostrarEnTextarea} />
                     </div>
                 );
             case 'vistas':
@@ -160,6 +187,7 @@ export default function Inicio() {
                         <CrearVistaCard />
                         <EliminarVistaCard />
                         <EjecutarVistaCard onEjecutarConsulta={ejecutarConsultaConTabla} />
+                        <ListarVistasCard onMostrarEnTextarea={mostrarEnTextarea} />
                     </div>
                 );
             case 'procedures':
@@ -168,6 +196,7 @@ export default function Inicio() {
                         <CrearProcedureCard />
                         <EliminarProcedureCard />
                         <EjecutarProcedureCard onEjecutarConsulta={ejecutarConsultaConTabla} />
+                        <ListarProceduresCard onMostrarEnTextarea={mostrarEnTextarea} />
                     </div>
                 );
             case 'consultas':
@@ -175,6 +204,7 @@ export default function Inicio() {
                     <div className='flex flex-wrap gap-4'>
                         <ConsultaCard onEjecutarConsulta={ejecutarConsultaConTabla} />
                         <ConsultaPersonalizadaCard onEjecutarConsulta={ejecutarConsultaConTabla} />
+                        <DatosCard onMostrarEnTextarea={mostrarEnTextarea} />
                     </div>
                 );
             default:
@@ -188,21 +218,24 @@ export default function Inicio() {
         setDatosTabla([]);
         setColumnasTabla([]);
         setConsultaEjecutada(false);
+        setMostrarTabla(false); // Reset del estado de mostrar tabla
         // Cerrar el drawer después de seleccionar
         document.getElementById('sidebar-drawer').checked = false;
     }; const renderResultados = () => {
-        const mostrarTabla = pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures';
+        // Usar el estado mostrarTabla en lugar de verificar pestañas directamente
+        const deberiasMostrarTabla = mostrarTabla && (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures');
 
         console.log('renderResultados:', {
+            deberiasMostrarTabla,
             mostrarTabla,
             pestanaActiva,
             columnasTabla: columnasTabla.length,
             datosTabla: datosTabla.length
         });
 
-        if (mostrarTabla) {
+        if (deberiasMostrarTabla) {
             return (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
                     <table className="table table-xs table-pin-rows table-pin-cols">
                         <thead>
                             <tr>
@@ -225,22 +258,23 @@ export default function Inicio() {
                             {datosTabla.length > 0 ? (
                                 datosTabla.map((fila, index) => (
                                     <tr key={index}>
-                                        <th>{index + 1}</th>
+                                        <th>{''}</th>
                                         {columnasTabla.length > 0 ? (
                                             columnasTabla.map((columna, colIndex) => (
-                                                <td key={colIndex}>{fila[columna] || '-'}</td>
+                                                <td
+                                                    className='text-sm'
+                                                    key={colIndex}>{fila[columna] || '-'}</td>
                                             ))
                                         ) : (
                                             Object.values(fila).map((valor, colIndex) => (
                                                 <td key={colIndex}>{valor || '-'}</td>
                                             ))
                                         )}
-                                        <th>{index + 1}</th>
                                     </tr>
                                 ))) : (
                                 <tr>
                                     <th>-</th>
-                                    <td colSpan={columnasTabla.length > 0 ? columnasTabla.length : 3}>
+                                    <td className='text-sm' colSpan={columnasTabla.length > 0 ? columnasTabla.length : 3}>
                                         {consultaEjecutada
                                             ? "No se encontraron datos para esta consulta"
                                             : "Los resultados de las consultas aparecerán aquí..."
@@ -250,23 +284,6 @@ export default function Inicio() {
                                 </tr>
                             )}
                         </tbody>
-                        <tfoot>
-                            <tr>
-                                <th></th>
-                                {columnasTabla.length > 0 ? (
-                                    columnasTabla.map((columna, index) => (
-                                        <td key={index}>{columna}</td>
-                                    ))
-                                ) : (
-                                    <>
-                                        <td>Columna 1</td>
-                                        <td>Columna 2</td>
-                                        <td>Columna 3</td>
-                                    </>
-                                )}
-                                <th></th>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
             );

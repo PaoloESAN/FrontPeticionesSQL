@@ -14,7 +14,7 @@ export default function Navbar() {
                 </label>
             </div>
             <div className="flex-1">
-                <a className="btn btn-ghost text-xl">Base de datos</a>
+                <a className="btn btn-ghost text-xl">Administrador de Base de Datos</a>
             </div>
             <div className="flex-none">
                 <div className="dropdown dropdown-end">

@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 
-export default function ListarBasesCard() {
+export default function ListarBasesCard({ onMostrarEnTextarea }) {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleListarBases = async () => {
+        // Primero mostrar el textarea con estado de carga
+        if (onMostrarEnTextarea) {
+            await onMostrarEnTextarea();
+        }
+
         setIsLoading(true);
 
         try {
@@ -26,6 +31,7 @@ export default function ListarBasesCard() {
                 resultado = 'No se encontraron bases de datos disponibles.';
             }
 
+            // Mostrar el resultado
             const textarea = document.getElementById('resultadoConsulta');
             if (textarea) {
                 textarea.value = resultado;
@@ -36,6 +42,11 @@ export default function ListarBasesCard() {
             const textarea = document.getElementById('resultadoConsulta');
             if (textarea) {
                 textarea.value = `Error al obtener la lista de bases de datos: ${error.message}`;
+            }
+
+            // Incluso en caso de error, notificar para mostrar el textarea
+            if (onMostrarEnTextarea) {
+                onMostrarEnTextarea();
             }
         } finally {
             setIsLoading(false);
