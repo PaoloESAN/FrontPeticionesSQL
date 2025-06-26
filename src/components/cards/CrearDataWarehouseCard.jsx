@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
     const [nombreDataWarehouse, setNombreDataWarehouse] = useState('');
+    const [nombreTablaWarehouse, setNombreTablaWarehouse] = useState('');
     const [databasesTablas, setDatabasesTablas] = useState([]);
     const [tablasSeleccionadas, setTablasSeleccionadas] = useState([]);
+    const [columnasSeleccionadas, setColumnasSeleccionadas] = useState([]);
     const [relaciones, setRelaciones] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingDatabases, setLoadingDatabases] = useState(false);
@@ -63,6 +65,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
 
     const removerTablaSeleccionada = (id) => {
         setTablasSeleccionadas(prev => prev.filter(tabla => tabla.id !== id));
+        setColumnasSeleccionadas(prev => prev.filter(col => col.tablaId !== id));
         setRelaciones(prev => prev.filter(rel =>
             rel.tabla1Id !== id && rel.tabla2Id !== id
         ));
@@ -102,6 +105,38 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
         setRelaciones(prev => prev.filter(rel => rel.id !== id));
     };
 
+    const toggleColumnaSeleccionada = (tablaId, columna) => {
+        const tabla = tablasSeleccionadas.find(t => t.id === tablaId);
+        if (!tabla) return;
+
+        const columnaCompleta = {
+            id: `${tablaId}_${columna.name}`,
+            tablaId,
+            nombre: columna.name,
+            tipo: columna.type,
+            alias: `${tabla.alias}_${columna.name}`,
+            database: tabla.database,
+            table: tabla.table
+        };
+
+        setColumnasSeleccionadas(prev => {
+            const exists = prev.find(col => col.id === columnaCompleta.id);
+            if (exists) {
+                return prev.filter(col => col.id !== columnaCompleta.id);
+            } else {
+                return [...prev, columnaCompleta];
+            }
+        });
+    };
+
+    const actualizarAliasColumna = (columnaId, nuevoAlias) => {
+        setColumnasSeleccionadas(prev =>
+            prev.map(col =>
+                col.id === columnaId ? { ...col, alias: nuevoAlias } : col
+            )
+        );
+    };
+
     const obtenerColumnasParaTabla = (tablaId) => {
         const tabla = tablasSeleccionadas.find(t => t.id === tablaId);
         if (!tabla) return [];
@@ -116,8 +151,18 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             return;
         }
 
+        if (!nombreTablaWarehouse.trim()) {
+            document.getElementById('modalDataWarehouseTablaNombreError').showModal();
+            return;
+        }
+
         if (tablasSeleccionadas.length === 0) {
             document.getElementById('modalDataWarehouseTablasError').showModal();
+            return;
+        }
+
+        if (columnasSeleccionadas.length === 0) {
+            document.getElementById('modalDataWarehouseColumnasError').showModal();
             return;
         }
 
@@ -157,9 +202,19 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
 
             const requestBody = {
                 name: warehouseNameWithSuffix,
+                tableName: nombreTablaWarehouse,
                 selectedTables,
+                selectedColumns: columnasSeleccionadas.map(col => ({
+                    database: col.database,
+                    table: col.table,
+                    column: col.nombre,
+                    alias: col.alias,
+                    type: col.tipo
+                })),
                 relationships
             };
+
+            console.log('Enviando al backend:', JSON.stringify(requestBody, null, 2));
 
             const response = await fetch('http://localhost:8080/api/datawarehouse/create', {
                 method: 'POST',
@@ -179,10 +234,17 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             if (textarea) {
                 let resultado = `=== DATA WAREHOUSE CREADO EXITOSAMENTE ===\n\n`;
                 resultado += `Nombre: ${data.warehouseName}\n`;
+                resultado += `Tabla principal: ${nombreTablaWarehouse}\n`;
                 resultado += `Mensaje: ${data.message}\n\n`;
+
                 resultado += `TABLAS INCLUIDAS:\n`;
                 selectedTables.forEach((tabla, index) => {
                     resultado += `${index + 1}. ${tabla.database}.${tabla.table} (Alias: ${tabla.alias})\n`;
+                });
+
+                resultado += `\nCOLUMNAS SELECCIONADAS (${columnasSeleccionadas.length}):\n`;
+                columnasSeleccionadas.forEach((col, index) => {
+                    resultado += `${index + 1}. ${col.database}.${col.table}.${col.nombre} AS ${col.alias} (${col.tipo})\n`;
                 });
 
                 if (relationships.length > 0) {
@@ -196,7 +258,9 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             }
 
             setNombreDataWarehouse('');
+            setNombreTablaWarehouse('');
             setTablasSeleccionadas([]);
+            setColumnasSeleccionadas([]);
             setRelaciones([]);
             document.getElementById('modalCrearDataWarehouse').close();
 
@@ -212,7 +276,6 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             setIsLoading(false);
         }
     };
-
     return (
         <>
             {/* Card principal con botón */}
@@ -221,7 +284,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                     <h2 className="card-title text-white">Crear Data Warehouse</h2>
 
                     <div className="text-white text-sm opacity-80 h-20">
-                        Crea un nuevo Data Warehouse en el que escoges bases de datos combinando tablas de múltiples bases de datos con relaciones personalizadas.
+                        Crea un nuevo Data Warehouse seleccionando tablas de múltiples bases de datos y especificando qué columnas incluir en la tabla consolidada con relaciones personalizadas.
                     </div>
 
                     <div className="card-actions justify-end">
@@ -266,6 +329,20 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                                     <span className="label-text-alt">Nombre final: <strong>{nombreDataWarehouse}_warehouse</strong></span>
                                 </label>
                             )}
+                        </div>
+
+                        {/* Nombre de la Tabla */}
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text font-semibold">Nombre de la Tabla Principal:</span>
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Ingresa el nombre de la tabla (ej: datos_consolidados, vista_general)"
+                                className="input input-bordered input-secondary w-full"
+                                value={nombreTablaWarehouse}
+                                onChange={(e) => setNombreTablaWarehouse(e.target.value)}
+                            />
                         </div>
 
                         {/* Selector de Tablas */}
@@ -333,6 +410,81 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                                             </button>
                                         </div>
                                     ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Selección de Columnas */}
+                        {tablasSeleccionadas.length > 0 && (
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-semibold">Seleccionar Columnas para la Tabla del Data Warehouse:</span>
+                                    <span className="label-text-alt text-info">Columnas seleccionadas: {columnasSeleccionadas.length}</span>
+                                </label>
+                                <div className="space-y-4 max-h-80 overflow-y-auto bg-base-200 p-4 rounded-lg">
+                                    {tablasSeleccionadas.map((tabla) => {
+                                        const columnasTabla = obtenerColumnasParaTabla(tabla.id);
+                                        const columnasSeleccionadasTabla = columnasSeleccionadas.filter(col => col.tablaId === tabla.id);
+
+                                        return (
+                                            <div key={tabla.id} className="bg-base-100 p-3 rounded-lg">
+                                                <h5 className="font-bold text-primary mb-2">
+                                                    📋 {tabla.database}.{tabla.table} ({tabla.alias})
+                                                </h5>
+
+                                                {columnasTabla.length === 0 ? (
+                                                    <div className="text-sm text-gray-500 italic">Cargando columnas...</div>
+                                                ) : (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                        {columnasTabla.map((columna) => {
+                                                            const isSelected = columnasSeleccionadas.some(col =>
+                                                                col.tablaId === tabla.id && col.nombre === columna.name
+                                                            );
+
+                                                            return (
+                                                                <label key={columna.name} className="cursor-pointer">
+                                                                    <div className={`flex items-center gap-2 p-2 rounded border ${isSelected ? 'bg-primary/10 border-primary' : 'border-base-300'}`}>
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            className="checkbox checkbox-primary checkbox-sm"
+                                                                            checked={isSelected}
+                                                                            onChange={() => toggleColumnaSeleccionada(tabla.id, columna)}
+                                                                        />
+                                                                        <div className="flex-1">
+                                                                            <div className="text-sm font-medium">{columna.name}</div>
+                                                                            <div className="text-xs text-gray-500">{columna.type}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </label>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+
+                                                {columnasSeleccionadasTabla.length > 0 && (
+                                                    <div className="mt-3">
+                                                        <h6 className="text-sm font-semibold mb-2">Alias de columnas seleccionadas:</h6>
+                                                        <div className="space-y-1">
+                                                            {columnasSeleccionadasTabla.map((col) => (
+                                                                <div key={col.id} className="flex items-center gap-2">
+                                                                    <span className="text-xs text-gray-600 min-w-0 flex-shrink-0">
+                                                                        {col.nombre}:
+                                                                    </span>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="input input-xs input-bordered flex-1"
+                                                                        value={col.alias}
+                                                                        onChange={(e) => actualizarAliasColumna(col.id, e.target.value)}
+                                                                        placeholder="Alias de la columna"
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -454,7 +606,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                                 type="button"
                                 className="btn btn-primary"
                                 onClick={crearDataWarehouse}
-                                disabled={isLoading || !nombreDataWarehouse.trim() || tablasSeleccionadas.length === 0}
+                                disabled={isLoading || !nombreDataWarehouse.trim() || !nombreTablaWarehouse.trim() || tablasSeleccionadas.length === 0 || columnasSeleccionadas.length === 0}
                             >
                                 {isLoading ? (
                                     <>
@@ -501,6 +653,30 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                     <p className="py-4">Por favor, selecciona al menos una tabla para el Data Warehouse.</p>
                     <div className="modal-action">
                         <button className="btn" onClick={() => document.getElementById('modalDataWarehouseTablasError').close()}>
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </dialog>
+
+            <dialog id="modalDataWarehouseTablaNombreError" className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg text-red-600">❌ Error</h3>
+                    <p className="py-4">Por favor, ingresa un nombre para la tabla principal del Data Warehouse.</p>
+                    <div className="modal-action">
+                        <button className="btn" onClick={() => document.getElementById('modalDataWarehouseTablaNombreError').close()}>
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </dialog>
+
+            <dialog id="modalDataWarehouseColumnasError" className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg text-red-600">❌ Error</h3>
+                    <p className="py-4">Por favor, selecciona al menos una columna para incluir en la tabla del Data Warehouse.</p>
+                    <div className="modal-action">
+                        <button className="btn" onClick={() => document.getElementById('modalDataWarehouseColumnasError').close()}>
                             Cerrar
                         </button>
                     </div>

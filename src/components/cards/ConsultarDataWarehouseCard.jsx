@@ -19,11 +19,19 @@ export default function ConsultarDataWarehouseCard({ onEjecutarConsulta }) {
                 throw new Error(`Error: ${response.status} ${response.statusText}`);
             }
             const data = await response.json();
+            console.log('Respuesta del endpoint datawarehouse/list:', data);
 
-            const dataWarehouses = Array.isArray(data.warehouses)
-                ? data.warehouses.filter(warehouse => warehouse.name.endsWith('_warehouse'))
-                : [];
+            let dataWarehouses = [];
 
+            if (Array.isArray(data.warehouses)) {
+                dataWarehouses = data.warehouses.filter(warehouse => warehouse.name.endsWith('_warehouse'));
+            } else if (Array.isArray(data)) {
+                dataWarehouses = data.filter(warehouse => warehouse.name && warehouse.name.endsWith('_warehouse'));
+            } else if (data.databases && Array.isArray(data.databases)) {
+                dataWarehouses = data.databases.filter(db => db.name && db.name.endsWith('_warehouse'));
+            }
+
+            console.log('Data warehouses filtrados:', dataWarehouses);
             setWarehouses(dataWarehouses);
         } catch (error) {
             console.error('Error al cargar warehouses:', error);

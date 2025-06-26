@@ -6,17 +6,19 @@ import { ModalEliminarBase } from '../AllModal';
 export default function EliminarBaseCard({ onEliminarBase }) {
     const [isOperating, setIsOperating] = useState(false);
     const [baseDatosSeleccionada, setBaseDatosSeleccionada] = useState('');
-    const { refrescarBasesDatos } = useBasesDatos(); const handleEliminar = async () => {
+    const { refrescarBasesDatos } = useBasesDatos();
+
+    const handleEliminar = async () => {
         if (!baseDatosSeleccionada) {
             document.getElementById('modalEliminarErrorBase').showModal();
             return;
         }
 
-        const confirmacion = window.confirm(
-            `¿Estás seguro de que quieres eliminar la base de datos "${baseDatosSeleccionada}"?`
-        );
+        document.getElementById('modalConfirmarEliminarBase').showModal();
+    };
 
-        if (!confirmacion) return;
+    const confirmarEliminacion = async () => {
+        document.getElementById('modalConfirmarEliminarBase').close();
 
         setIsOperating(true);
         try {
@@ -26,6 +28,10 @@ export default function EliminarBaseCard({ onEliminarBase }) {
         } finally {
             setIsOperating(false);
         }
+    };
+
+    const cancelarEliminacion = () => {
+        document.getElementById('modalConfirmarEliminarBase').close();
     };
 
     return (
@@ -51,6 +57,33 @@ export default function EliminarBaseCard({ onEliminarBase }) {
             </div>
 
             <ModalEliminarBase />
+
+            {/* Modal de confirmación */}
+            <dialog id="modalConfirmarEliminarBase" className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg">Confirmar eliminación</h3>
+                    <p className="py-4">
+                        ¿Estás seguro de que quieres eliminar la base de datos "{baseDatosSeleccionada}"?
+                        <br />
+                        <span className="text-warning font-semibold">Esta acción no se puede deshacer.</span>
+                    </p>
+                    <div className="modal-action">
+                        <button
+                            className="btn btn-ghost"
+                            onClick={cancelarEliminacion}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            className="btn btn-error"
+                            onClick={confirmarEliminacion}
+                            disabled={isOperating}
+                        >
+                            {isOperating ? 'Eliminando...' : 'Eliminar'}
+                        </button>
+                    </div>
+                </div>
+            </dialog>
         </div>
     );
 }
