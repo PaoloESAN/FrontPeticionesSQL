@@ -21,3 +21,7 @@ export { default as ListarProceduresCard } from './ListarProceduresCard';
 export { default as EjecutarProcedureCard } from './EjecutarProcedureCard';
 export { default as ConsultaPersonalizadaCard } from './ConsultaPersonalizadaCard';
 export { default as DatosCard } from './DatosCard';
+export { default as CrearDataWarehouseCard } from './CrearDataWarehouseCard';
+export { default as ListarDataWarehousesCard } from './ListarDataWarehousesCard';
+export { default as EliminarDataWarehouseCard } from './EliminarDataWarehouseCard';
+export { default as ConsultarDataWarehouseCard } from './ConsultarDataWarehouseCard';

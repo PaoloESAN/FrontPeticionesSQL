@@ -7,7 +7,6 @@ export default function CrearVistaCard() {
     const [isCreating, setIsCreating] = useState(false);
 
     const notificarCambioVistas = () => {
-        // Enviar evento personalizado para notificar que las vistas han cambiado
         window.dispatchEvent(new CustomEvent('vistasActualizadas', {
             detail: { baseDatos: baseDatosSeleccionada }
         }));
@@ -59,13 +58,11 @@ export default function CrearVistaCard() {
     );
 }
 
-// Componente Modal separado
 function ModalCrearVistaFormulario({ baseDatos, setIsCreating, onVistaCreada }) {
     const [nombreVista, setNombreVista] = useState('');
     const [scriptSQL, setScriptSQL] = useState('');
 
     const crearVista = async () => {
-        // Validaciones
         if (!nombreVista.trim()) {
             document.getElementById('modalCrearVistaErrorValidacion').showModal();
             return;
@@ -79,7 +76,6 @@ function ModalCrearVistaFormulario({ baseDatos, setIsCreating, onVistaCreada }) 
         setIsCreating(true);
 
         try {
-            // Construir la consulta SQL para crear vista
             const consultaSQL = `CREATE VIEW ${nombreVista.trim()} AS ${scriptSQL.trim()}`;
 
             console.log('Creando vista con SQL:', consultaSQL);
@@ -89,19 +85,15 @@ function ModalCrearVistaFormulario({ baseDatos, setIsCreating, onVistaCreada }) 
             });
 
             if (response.ok) {
-                // Limpiar formulario
                 setNombreVista('');
                 setScriptSQL('');
 
-                // Cerrar modal
                 document.getElementById('modalCrearVista').close();
 
-                // Notificar que se creó una vista para refrescar selectores
                 if (onVistaCreada) {
                     onVistaCreada();
                 }
 
-                // Mostrar éxito
                 document.getElementById('modalCrearVistaOk').showModal();
             } else {
                 const errorData = await response.json();

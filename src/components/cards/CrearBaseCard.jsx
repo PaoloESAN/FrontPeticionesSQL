@@ -14,8 +14,7 @@ export default function CrearBaseCard({ onCrearBase }) {
         setIsOperating(true);
         try {
             await onCrearBase(nombreBase);
-            setNombreBase(''); // Limpiar el input
-            // Refrescar la lista de bases de datos automáticamente
+            setNombreBase('');
             refrescarBasesDatos();
         } finally {
             setIsOperating(false);

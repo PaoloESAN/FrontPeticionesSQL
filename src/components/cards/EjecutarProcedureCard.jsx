@@ -54,7 +54,6 @@ export default function EjecutarProcedureCard({ onEjecutarConsulta }) {
 
     const handleBaseDatosChange = (nuevaBase) => {
         setBaseDatosSeleccionada(nuevaBase);
-        // Limpiar procedure cuando cambia la base
         setProcedureSeleccionado('');
     };
 

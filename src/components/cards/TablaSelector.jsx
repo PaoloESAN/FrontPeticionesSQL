@@ -36,7 +36,6 @@ export default function TablaSelector({
         obtenerTablas(baseDatos);
     }, [baseDatos]);
 
-    // Escuchar eventos de actualización de tablas
     useEffect(() => {
         const handleTablasActualizadas = (event) => {
             if (event.detail.baseDatos === baseDatos) {

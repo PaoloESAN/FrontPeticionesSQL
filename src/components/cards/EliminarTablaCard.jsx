@@ -15,7 +15,7 @@ export default function EliminarTablaCard() {
         }));
     }; const handleBaseDatosChange = (nuevaBase) => {
         setBaseDatosSeleccionada(nuevaBase);
-        setTablaSeleccionada(''); // Limpiar tabla cuando cambia la base
+        setTablaSeleccionada('');
     }; const handleTablaChange = (nuevaTabla) => {
         setTablaSeleccionada(nuevaTabla);
     };
@@ -64,10 +64,8 @@ export default function EliminarTablaCard() {
             if (response.ok) {
                 document.getElementById('modalEliminarTablaOk').showModal();
 
-                // Limpiar selección de tabla después del éxito
                 setTablaSeleccionada('');
 
-                // Notificar cambio en las tablas
                 notificarCambioTablas();
             } else {
                 const errorData = await response.json();

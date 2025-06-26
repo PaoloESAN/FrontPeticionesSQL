@@ -217,10 +217,8 @@ function ModalInsertarDatos({ baseDatos, tabla, columnas, valores, setValores, v
                 return;
             }
 
-            // Filtrar solo valores no vacíos (excluyendo campos auto-incremento)
             const valoresNoVacios = Object.entries(valores).filter(([key, value]) => {
                 const columna = columnas.find(col => col.nombre === key);
-                // Excluir campos auto-incremento y valores vacíos de campos opcionales
                 if (columna?.esAutoIncremento) return false;
                 return value && value.trim() !== '';
             });
@@ -253,20 +251,16 @@ function ModalInsertarDatos({ baseDatos, tabla, columnas, valores, setValores, v
             });
 
             if (response.ok) {
-                // Limpiar formulario
                 const valoresVacios = {};
                 columnas.forEach(columna => {
                     valoresVacios[columna.nombre] = '';
                 });
                 setValores(valoresVacios);
 
-                // Cerrar modal
                 document.getElementById('modalInsertarDatos').close();
 
-                // Mostrar éxito
                 document.getElementById('modalInsertarDatosOk').showModal();
 
-                // Mostrar resultado en textarea
                 const textarea = document.getElementById('resultadoConsulta');
                 if (textarea) {
                     textarea.value = `✅ Datos insertados correctamente en la tabla "${tabla}"`;
@@ -274,7 +268,6 @@ function ModalInsertarDatos({ baseDatos, tabla, columnas, valores, setValores, v
             } else {
                 const errorData = await response.text();
 
-                // Mostrar error en textarea
                 const textarea = document.getElementById('resultadoConsulta');
                 if (textarea) {
                     textarea.value = `❌ Error al insertar datos: ${errorData}`;

@@ -49,7 +49,6 @@ export default function VistaSelector({
         obtenerVistas(baseDatos);
     }, [baseDatos]);
 
-    // Escuchar eventos de actualización de vistas
     useEffect(() => {
         const handleVistasActualizadas = (event) => {
             if (event.detail.baseDatos === baseDatos) {

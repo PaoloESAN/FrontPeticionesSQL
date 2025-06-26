@@ -19,20 +19,17 @@ export default function EjecutarVistaCard({ onEjecutarConsulta }) {
         }
 
         setIsExecuting(true); try {
-            // Construir la consulta SQL para ejecutar la vista
             const consultaSQL = `SELECT * FROM ${vistaSeleccionada}`;
 
             console.log('Ejecutando vista:', consultaSQL);
             console.log('Base de datos:', baseDatosSeleccionada);
 
-            // Usar el nuevo endpoint para consultas SELECT (vistas)
             const response = await fetch(`http://localhost:8080/api/consultaSelect?bd=${baseDatosSeleccionada}&sql=${encodeURIComponent(consultaSQL)}`, {
                 method: 'GET',
             });
 
             if (response.ok) {
                 const data = await response.json();
-                // Llamar a la función del padre para procesar los resultados
                 if (onEjecutarConsulta) {
                     await onEjecutarConsulta(consultaSQL, baseDatosSeleccionada, data);
                 }
@@ -52,7 +49,6 @@ export default function EjecutarVistaCard({ onEjecutarConsulta }) {
 
     const handleBaseDatosChange = (nuevaBase) => {
         setBaseDatosSeleccionada(nuevaBase);
-        // Limpiar vista cuando cambia la base
         setVistaSeleccionada('');
     };
 
@@ -102,7 +98,6 @@ export default function EjecutarVistaCard({ onEjecutarConsulta }) {
     );
 }
 
-// Componente con todos los modales de error y éxito
 function ModalEjecutarVistaErrores() {
     return (
         <>

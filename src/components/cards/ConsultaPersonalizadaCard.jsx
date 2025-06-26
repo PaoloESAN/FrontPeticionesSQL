@@ -75,7 +75,7 @@ export default function ConsultaPersonalizadaCard({ onEjecutarConsulta }) {
                 <div className='flex flex-col mt-2'>
                     <textarea
                         placeholder="Escribe tu consulta SQL aquí..."
-                        className="textarea textarea-warning w-full h-16 resize-none"
+                        className="textarea textarea-warning w-full h-16"
                         value={consultaSQL}
                         onChange={(e) => setConsultaSQL(e.target.value)}
                         disabled={baseDatosSeleccionada === ''}

@@ -47,12 +47,10 @@ export default function ListarVistasCard({ onMostrarEnTextarea }) {
 
         } catch (error) {
             console.error('Error al listar vistas:', error);
-            // Mostrar error en el textarea
             const textarea = document.getElementById('resultadoConsulta');
             if (textarea) {
                 textarea.value = `Error al obtener la lista de vistas: ${error.message}`;
             }
-            // Usar la función prop también para errores
             if (onMostrarEnTextarea) {
                 onMostrarEnTextarea();
             }

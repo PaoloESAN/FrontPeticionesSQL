@@ -50,7 +50,6 @@ export default function ListarTablasCard({ onMostrarEnTextarea }) {
             if (textarea) {
                 textarea.value = `Error al obtener la lista de tablas: ${error.message}`;
             }
-            // Usar la función prop también para errores
             if (onMostrarEnTextarea) {
                 onMostrarEnTextarea();
             }

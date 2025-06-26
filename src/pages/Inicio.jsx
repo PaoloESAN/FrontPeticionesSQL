@@ -20,7 +20,11 @@ import {
     EjecutarProcedureCard,
     ConsultaCard,
     ConsultaPersonalizadaCard,
-    DatosCard
+    DatosCard,
+    CrearDataWarehouseCard,
+    ListarDataWarehousesCard,
+    EliminarDataWarehouseCard,
+    ConsultarDataWarehouseCard
 } from '../components/cards/index.js'
 
 export default function Inicio() {
@@ -28,38 +32,30 @@ export default function Inicio() {
     const [datosTabla, setDatosTabla] = useState([]);
     const [columnasTabla, setColumnasTabla] = useState([]);
     const [consultaEjecutada, setConsultaEjecutada] = useState(false);
-    const [mostrarTabla, setMostrarTabla] = useState(false); // Nuevo estado para controlar tabla vs textarea
+    const [mostrarTabla, setMostrarTabla] = useState(false);
 
-    // Función para manejar acciones que deben mostrar textarea (listar)
     const mostrarEnTextarea = async () => {
-        // Solo configurar estados para mostrar textarea
         setMostrarTabla(false);
         setConsultaEjecutada(true);
 
-        // Limpiar datos de tabla
         setDatosTabla([]);
         setColumnasTabla([]);
 
-        // Esperar a que React actualice el DOM
         await new Promise(resolve => setTimeout(resolve, 0));
 
-        // Limpiar el textarea y mostrar "Cargando..."
         const textarea = document.getElementById('resultadoConsulta');
         if (textarea) {
             textarea.value = 'Cargando...';
         }
     };
 
-    // Función personalizada para manejar consultas con resultados de tabla
     const ejecutarConsultaConTabla = async (consultaSQL, baseDatosSeleccionada, datosDirectos = null) => {
         try {
             let data;
 
             if (datosDirectos) {
-                // Si recibimos datos directos del nuevo endpoint, usarlos
                 data = datosDirectos;
             } else {
-                // Si no, usar el endpoint original
                 const response = await fetch(`http://localhost:8080/api/consultaBase?nombre=${baseDatosSeleccionada}&sql=${encodeURIComponent(consultaSQL)}`, {
                     method: 'POST',
                 });
@@ -72,22 +68,19 @@ export default function Inicio() {
                 }
 
                 data = await response.json();
-            }            // Si estamos en consultas, vistas o procedures, procesar para tabla
+            }
             if (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures') {
                 console.log('Procesando datos para tabla:', { datosDirectos: !!datosDirectos, data, pestanaActiva });
 
-                // Marcar que se ejecutó una consulta y que se debe mostrar tabla
                 setConsultaEjecutada(true);
                 setMostrarTabla(true);
 
                 if (datosDirectos) {
-                    // Datos directos del nuevo endpoint - verificar si tiene formato {respuesta: "..."}
                     console.log('Datos directos recibidos:', data);
 
                     let resultados;
 
                     if (data.respuesta) {
-                        // El endpoint devuelve {respuesta: "[...]"} - parsear el string JSON
                         try {
                             resultados = JSON.parse(data.respuesta);
                             console.log('Datos parseados desde respuesta:', resultados);
@@ -96,7 +89,6 @@ export default function Inicio() {
                             resultados = [];
                         }
                     } else if (Array.isArray(data)) {
-                        // El endpoint devuelve directamente un array
                         resultados = data;
                         console.log('Datos directos como array:', resultados);
                     } else {
@@ -105,7 +97,6 @@ export default function Inicio() {
                     }
 
                     if (Array.isArray(resultados) && resultados.length > 0) {
-                        // Extraer columnas del primer objeto
                         const columnas = Object.keys(resultados[0]);
                         console.log('Columnas extraídas:', columnas);
                         setColumnasTabla(columnas);
@@ -121,13 +112,10 @@ export default function Inicio() {
                         setDatosTabla([]);
                     }
                 } else {
-                    // Procesar respuesta del endpoint original
                     try {
-                        // Intentar parsear la respuesta como JSON para datos tabulares
                         const resultados = JSON.parse(data.respuesta);
 
                         if (Array.isArray(resultados) && resultados.length > 0) {
-                            // Extraer columnas del primer objeto
                             const columnas = Object.keys(resultados[0]);
                             setColumnasTabla(columnas);
                             setDatosTabla(resultados);
@@ -136,7 +124,6 @@ export default function Inicio() {
                             setDatosTabla([]);
                         }
                     } catch {
-                        // Si no se puede parsear como JSON, mostrar en textarea
                         const resultado = document.getElementById('resultadoConsulta');
                         if (resultado) {
                             resultado.value = data.respuesta;
@@ -146,7 +133,6 @@ export default function Inicio() {
                     }
                 }
             } else {
-                // Para otras pestañas, usar textarea como antes
                 const resultado = document.getElementById('resultadoConsulta');
                 if (resultado) {
                     resultado.value = datosDirectos ? JSON.stringify(data, null, 2) : data.respuesta;
@@ -207,6 +193,15 @@ export default function Inicio() {
                         <DatosCard onMostrarEnTextarea={mostrarEnTextarea} />
                     </div>
                 );
+            case 'datawarehouse':
+                return (
+                    <div className='flex flex-wrap gap-4'>
+                        <CrearDataWarehouseCard onMostrarEnTextarea={mostrarEnTextarea} />
+                        <ListarDataWarehousesCard onMostrarEnTextarea={mostrarEnTextarea} />
+                        <EliminarDataWarehouseCard />
+                        <ConsultarDataWarehouseCard onEjecutarConsulta={ejecutarConsultaConTabla} />
+                    </div>
+                );
             default:
                 return <div className="text-center text-gray-500 mt-8">Selecciona una categoría del menú lateral</div>;
         }
@@ -214,15 +209,12 @@ export default function Inicio() {
 
     const navegarA = (pestaña) => {
         setPestanaActiva(pestaña);
-        // Limpiar datos de tabla cuando se cambie de pestaña
         setDatosTabla([]);
         setColumnasTabla([]);
         setConsultaEjecutada(false);
-        setMostrarTabla(false); // Reset del estado de mostrar tabla
-        // Cerrar el drawer después de seleccionar
+        setMostrarTabla(false);
         document.getElementById('sidebar-drawer').checked = false;
     }; const renderResultados = () => {
-        // Usar el estado mostrarTabla en lugar de verificar pestañas directamente
         const deberiasMostrarTabla = mostrarTabla && (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures');
 
         console.log('renderResultados:', {
@@ -306,6 +298,7 @@ export default function Inicio() {
             case 'vistas': return 'Gestión de Vistas';
             case 'procedures': return 'Gestión de Stored Procedures';
             case 'consultas': return 'Consultas SQL';
+            case 'datawarehouse': return 'Gestión de Data Warehouse';
             default: return 'Administrador de Base de Datos';
         }
     };
@@ -355,6 +348,15 @@ export default function Inicio() {
             icono: (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            )
+        },
+        {
+            id: 'datawarehouse',
+            titulo: 'Data Warehouse',
+            icono: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
             )
         }

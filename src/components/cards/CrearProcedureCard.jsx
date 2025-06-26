@@ -86,20 +86,15 @@ function ModalCrearProcedureFormulario({ baseDatos, setIsCreating, onProcedureCr
             });
 
             if (response.ok) {
-                // Limpiar formulario
                 setNombreProcedure('');
                 setScriptSQL('');
 
-                // Cerrar modal
                 document.getElementById('modalCrearProcedure').close();
 
-                // Notificar cambio
                 onProcedureCreado();
 
-                // Mostrar éxito
                 document.getElementById('modalCrearProcedureOk').showModal();
 
-                // Mostrar resultado en textarea
                 const textarea = document.getElementById('resultadoConsulta');
                 if (textarea) {
                     textarea.value = `✅ Procedure "${nombreProcedure}" creado correctamente`;
@@ -107,7 +102,6 @@ function ModalCrearProcedureFormulario({ baseDatos, setIsCreating, onProcedureCr
             } else {
                 const errorData = await response.text();
 
-                // Mostrar error en textarea
                 const textarea = document.getElementById('resultadoConsulta');
                 if (textarea) {
                     textarea.value = `❌ Error al crear procedure: ${errorData}`;

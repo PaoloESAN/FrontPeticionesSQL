@@ -103,7 +103,6 @@ export function ModalEliminarTabla() {
     )
 }
 
-// Modal de confirmación personalizado para eliminar tabla
 function ModalConfirmarEliminarTabla() {
     const cerrarModal = () => {
         document.getElementById('modalConfirmarEliminarTabla').close();
@@ -206,7 +205,6 @@ export function ModalEliminarVista() {
     )
 }
 
-// Modal de confirmación personalizado para eliminar vista
 function ModalConfirmarEliminarVista() {
     const cerrarModal = () => {
         document.getElementById('modalConfirmarEliminarVista').close();

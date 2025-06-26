@@ -21,8 +21,7 @@ export default function EliminarBaseCard({ onEliminarBase }) {
         setIsOperating(true);
         try {
             await onEliminarBase(baseDatosSeleccionada);
-            setBaseDatosSeleccionada(''); // Limpiar selección
-            // Refrescar la lista de bases de datos automáticamente
+            setBaseDatosSeleccionada('');
             refrescarBasesDatos();
         } finally {
             setIsOperating(false);

@@ -17,7 +17,7 @@ export default function EliminarProcedureCard() {
 
     const handleBaseDatosChange = (nuevaBase) => {
         setBaseDatosSeleccionada(nuevaBase);
-        setProcedureSeleccionado(''); // Limpiar procedure cuando cambia la base
+        setProcedureSeleccionado('');
     };
 
     const handleProcedureChange = (nuevoProcedure) => {
@@ -70,10 +70,8 @@ export default function EliminarProcedureCard() {
             if (response.ok) {
                 document.getElementById('modalEliminarProcedureOk').showModal();
 
-                // Limpiar selección de procedure después del éxito
                 setProcedureSeleccionado('');
 
-                // Notificar cambio en los procedures
                 notificarCambioProcedures();
             } else {
                 const errorData = await response.json();

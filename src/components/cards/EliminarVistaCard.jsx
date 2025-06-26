@@ -17,7 +17,7 @@ export default function EliminarVistaCard() {
 
     const handleBaseDatosChange = (nuevaBase) => {
         setBaseDatosSeleccionada(nuevaBase);
-        setVistaSeleccionada(''); // Limpiar vista cuando cambia la base
+        setVistaSeleccionada('');
     };
 
     const handleVistaChange = (nuevaVista) => {
@@ -70,10 +70,8 @@ export default function EliminarVistaCard() {
             if (response.ok) {
                 document.getElementById('modalEliminarVistaOk').showModal();
 
-                // Limpiar selección de vista después del éxito
                 setVistaSeleccionada('');
 
-                // Notificar cambio en las vistas
                 notificarCambioVistas();
             } else {
                 const errorData = await response.json();

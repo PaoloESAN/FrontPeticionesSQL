@@ -30,7 +30,6 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
         console.log('Ejecutando consulta:', consultaSQL);
         console.log('Base de datos:', baseDatosSeleccionada);
 
-        // Siempre usar el nuevo endpoint para consultas SELECT
         try {
             const response = await fetch(`http://localhost:8080/api/consultaSelect?bd=${baseDatosSeleccionada}&sql=${encodeURIComponent(consultaSQL)}`, {
                 method: 'GET',
@@ -38,7 +37,6 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
 
             if (response.ok) {
                 const data = await response.json();
-                // Llamar a la función del padre para procesar los resultados
                 await onEjecutarConsulta(consultaSQL, baseDatosSeleccionada, data);
             } else {
                 document.getElementById('modalConsultaErrorBase').showModal();
@@ -53,14 +51,12 @@ export default function ConsultaCard({ onEjecutarConsulta }) {
 
     const handleBaseDatosChange = (nuevaBase) => {
         setBaseDatosSeleccionada(nuevaBase);
-        // Limpiar tabla y columna cuando cambia la base
         setTabla('');
         setColumna('');
     };
 
     const handleTablaChange = (nuevaTabla) => {
         setTabla(nuevaTabla);
-        // Limpiar columna cuando cambia la tabla
         setColumna('');
     };
 
