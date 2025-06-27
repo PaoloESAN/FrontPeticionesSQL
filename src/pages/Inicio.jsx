@@ -24,7 +24,8 @@ import {
     CrearDataWarehouseCard,
     ListarDataWarehousesCard,
     EliminarDataWarehouseCard,
-    ConsultarDataWarehouseCard
+    ConsultarDataWarehouseCard,
+    CrearDataMartCard
 } from '../components/cards/index.js'
 
 export default function Inicio() {
@@ -200,6 +201,7 @@ export default function Inicio() {
                         <ListarDataWarehousesCard onMostrarEnTextarea={mostrarEnTextarea} />
                         <EliminarDataWarehouseCard />
                         <ConsultarDataWarehouseCard onEjecutarConsulta={ejecutarConsultaConTabla} />
+                        <CrearDataMartCard onMostrarEnTextarea={mostrarEnTextarea} />
                     </div>
                 );
             default:

@@ -25,3 +25,4 @@ export { default as CrearDataWarehouseCard } from './CrearDataWarehouseCard';
 export { default as ListarDataWarehousesCard } from './ListarDataWarehousesCard';
 export { default as EliminarDataWarehouseCard } from './EliminarDataWarehouseCard';
 export { default as ConsultarDataWarehouseCard } from './ConsultarDataWarehouseCard';
+export { default as CrearDataMartCard } from './CrearDataMartCard';
