@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 export default function ListarDataWarehousesCard({ onMostrarEnTextarea }) {
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleListarDataWarehouses = async () => {
+    const handleListarDataWarehouses = useCallback(async () => {
         if (onMostrarEnTextarea) {
             await onMostrarEnTextarea();
         }
@@ -37,9 +37,7 @@ export default function ListarDataWarehousesCard({ onMostrarEnTextarea }) {
                 resultado = `=== DATA WAREHOUSES DISPONIBLES ===\n\n`;
                 dataWarehouses.forEach((warehouse, index) => {
                     resultado += `${index + 1}. ${warehouse.name}\n`;
-                    resultado += `   - Creado: ${warehouse.created_date || 'Fecha no disponible'}\n`;
-                    resultado += `   - Tablas incluidas: ${warehouse.table_count || 0}\n`;
-                    resultado += `   - Estado: ${warehouse.status || 'Activo'}\n\n`;
+                    resultado += `\n`;
                 });
                 resultado += `Total de Data Warehouses: ${dataWarehouses.length}`;
             } else {
@@ -60,7 +58,25 @@ export default function ListarDataWarehousesCard({ onMostrarEnTextarea }) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [onMostrarEnTextarea]);
+
+    useEffect(() => {
+        // Escuchar eventos de actualización de warehouses
+        const handleWarehouseUpdate = () => {
+            console.log('🔄 Evento recibido: actualizando automáticamente la lista en ListarDataWarehousesCard');
+            // Auto-refresh cuando se crea o elimina un warehouse
+            handleListarDataWarehouses();
+        };
+
+        window.addEventListener('datawarehouseCreated', handleWarehouseUpdate);
+        window.addEventListener('datawarehouseDeleted', handleWarehouseUpdate);
+
+        // Cleanup al desmontar el componente
+        return () => {
+            window.removeEventListener('datawarehouseCreated', handleWarehouseUpdate);
+            window.removeEventListener('datawarehouseDeleted', handleWarehouseUpdate);
+        };
+    }, [handleListarDataWarehouses]);
 
     return (
         <>

@@ -9,6 +9,21 @@ export default function ConsultarDataWarehouseCard({ onEjecutarConsulta }) {
 
     useEffect(() => {
         cargarWarehouses();
+
+        // Escuchar eventos de actualización de warehouses
+        const handleWarehouseUpdate = () => {
+            console.log('🔄 Evento recibido: actualizando lista de warehouses en ConsultarDataWarehouseCard');
+            cargarWarehouses();
+        };
+
+        window.addEventListener('datawarehouseCreated', handleWarehouseUpdate);
+        window.addEventListener('datawarehouseDeleted', handleWarehouseUpdate);
+
+        // Cleanup al desmontar el componente
+        return () => {
+            window.removeEventListener('datawarehouseCreated', handleWarehouseUpdate);
+            window.removeEventListener('datawarehouseDeleted', handleWarehouseUpdate);
+        };
     }, []);
 
     const cargarWarehouses = async () => {
@@ -100,7 +115,7 @@ export default function ConsultarDataWarehouseCard({ onEjecutarConsulta }) {
                             </option>
                             {warehouses.map((warehouse, index) => (
                                 <option key={index} value={warehouse.name}>
-                                    {warehouse.name} ({warehouse.table_count || 0} tablas)
+                                    {warehouse.name}
                                 </option>
                             ))}
                         </select>
@@ -115,20 +130,6 @@ export default function ConsultarDataWarehouseCard({ onEjecutarConsulta }) {
                             onChange={(e) => setConsultaSQL(e.target.value)}
                         />
                     </div>
-
-                    {/* Información de ayuda */}
-                    {warehouseSeleccionado && (
-                        <div className="bg-info bg-opacity-20 p-3 rounded-lg">
-                            <p className="text-white text-xs mb-2">
-                                💡 <strong>Tips para consultar "{warehouseSeleccionado}":</strong>
-                            </p>
-                            <ul className="text-white text-xs space-y-1 ml-4">
-                                <li>• Usa <code className="bg-black bg-opacity-30 px-1 rounded">SELECT * FROM tabla_principal</code> para ver todos los datos</li>
-                                <li>• Los alias de columnas están disponibles según la configuración del Data Warehouse</li>
-                                <li>• Puedes usar JOINs, WHERE, GROUP BY, etc. como en SQL normal</li>
-                            </ul>
-                        </div>
-                    )}
 
                     {/* Botón ejecutar */}
                     <div className="justify-end card-actions">

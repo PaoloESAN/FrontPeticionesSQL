@@ -5,10 +5,24 @@ export default function EliminarDataWarehouseCard() {
     const [warehouseSeleccionado, setWarehouseSeleccionado] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [loadingWarehouses, setLoadingWarehouses] = useState(false);
-    const [resultados, setResultados] = useState('');
 
     useEffect(() => {
         cargarWarehouses();
+
+        // Escuchar eventos de actualización de warehouses
+        const handleWarehouseUpdate = () => {
+            console.log('Evento recibido: actualizando lista de warehouses en EliminarDataWarehouseCard');
+            cargarWarehouses();
+        };
+
+        window.addEventListener('datawarehouseCreated', handleWarehouseUpdate);
+        window.addEventListener('datawarehouseDeleted', handleWarehouseUpdate);
+
+        // Cleanup al desmontar el componente
+        return () => {
+            window.removeEventListener('datawarehouseCreated', handleWarehouseUpdate);
+            window.removeEventListener('datawarehouseDeleted', handleWarehouseUpdate);
+        };
     }, []);
 
     const cargarWarehouses = async () => {
@@ -48,11 +62,8 @@ export default function EliminarDataWarehouseCard() {
         }
 
         document.getElementById('modalConfirmarEliminarDataWarehouse').showModal();
-    };
-
-    const confirmarEliminacion = async () => {
+    }; const confirmarEliminacion = async () => {
         document.getElementById('modalConfirmarEliminarDataWarehouse').close();
-
         setIsLoading(true);
 
         try {
@@ -62,32 +73,24 @@ export default function EliminarDataWarehouseCard() {
                 method: 'DELETE'
             });
 
-            console.log('Status de respuesta:', response.status);
-
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Error del servidor:', errorText);
-                throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
 
-            const data = await response.json();
-            console.log('Respuesta de eliminación:', data);
-
-            let resultado = `=== DATA WAREHOUSE ELIMINADO EXITOSAMENTE ===\n\n`;
-            resultado += `Nombre: ${warehouseSeleccionado}\n`;
-            resultado += `Mensaje: ${data.message || 'Data Warehouse eliminado correctamente'}\n`;
-            resultado += `Fecha de eliminación: ${new Date().toLocaleString()}\n`;
-
-            setResultados(resultado);
-
+            // Actualizar lista y limpiar selección
             await cargarWarehouses();
             setWarehouseSeleccionado('');
+
+            // Emitir evento para notificar a otros componentes
+            console.log('Emitiendo evento datawarehouseDeleted');
+            window.dispatchEvent(new CustomEvent('datawarehouseDeleted', {
+                detail: { deletedWarehouse: warehouseSeleccionado }
+            }));
 
             document.getElementById('modalEliminarDataWarehouseExito').showModal();
 
         } catch (error) {
             console.error('Error al eliminar Data Warehouse:', error);
-            setResultados(`Error al eliminar Data Warehouse: ${error.message}`);
             document.getElementById('modalEliminarDataWarehouseErrorDelete').showModal();
         } finally {
             setIsLoading(false);
@@ -117,7 +120,7 @@ export default function EliminarDataWarehouseCard() {
                             </option>
                             {warehouses.map((warehouse, index) => (
                                 <option key={index} value={warehouse.name}>
-                                    {warehouse.name} ({warehouse.table_count || 0} tablas)
+                                    {warehouse.name}
                                 </option>
                             ))}
                         </select>
@@ -127,7 +130,7 @@ export default function EliminarDataWarehouseCard() {
                     {warehouseSeleccionado && (
                         <div className="bg-error bg-opacity-20 p-3 rounded-lg border border-error">
                             <p className="text-white text-xs">
-                                ⚠️ <strong>Advertencia:</strong> Esta acción eliminará completamente el Data Warehouse "{warehouseSeleccionado}" y todos sus datos. No se puede deshacer.
+                                <strong>Advertencia:</strong> Esta acción eliminará completamente el Data Warehouse "{warehouseSeleccionado}" y todos sus datos. No se puede deshacer.
                             </p>
                         </div>
                     )}
@@ -155,7 +158,7 @@ export default function EliminarDataWarehouseCard() {
             {/* Modales */}
             <dialog id="modalEliminarDataWarehouseError" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg text-red-600">❌ Error</h3>
+                    <h3 className="font-bold text-lg text-red-600">Error</h3>
                     <p className="py-4">Por favor, selecciona un Data Warehouse para eliminar.</p>
                     <div className="modal-action">
                         <button
@@ -170,10 +173,8 @@ export default function EliminarDataWarehouseCard() {
 
             <dialog id="modalEliminarDataWarehouseExito" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg text-green-600">✅ Éxito</h3>
-                    <div className="py-4">
-                        <pre className="text-sm whitespace-pre-wrap">{resultados}</pre>
-                    </div>
+                    <h3 className="font-bold text-lg text-green-600">Éxito</h3>
+                    <p className="py-4">Data Warehouse eliminado exitosamente.</p>
                     <div className="modal-action">
                         <button
                             className="btn btn-primary"
@@ -187,10 +188,8 @@ export default function EliminarDataWarehouseCard() {
 
             <dialog id="modalEliminarDataWarehouseErrorDelete" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg text-red-600">❌ Error al Eliminar</h3>
-                    <div className="py-4">
-                        <pre className="text-sm whitespace-pre-wrap">{resultados}</pre>
-                    </div>
+                    <h3 className="font-bold text-lg text-red-600">Error al Eliminar</h3>
+                    <p className="py-4">Ocurrió un error al eliminar el Data Warehouse. Por favor, intenta nuevamente.</p>
                     <div className="modal-action">
                         <button
                             className="btn"

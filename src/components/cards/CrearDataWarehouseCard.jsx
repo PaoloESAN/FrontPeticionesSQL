@@ -10,21 +10,22 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
     const [isLoading, setIsLoading] = useState(false);
     const [loadingDatabases, setLoadingDatabases] = useState(false);
     const [columnasTablas, setColumnasTablas] = useState({});
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
-        console.log('🚀 Componente CrearDataWarehouseCard montado - Iniciando carga inicial');
+        console.log('Componente CrearDataWarehouseCard montado - Iniciando carga inicial');
         cargarDatabasesYTablas();
     }, []);
 
     const cargarDatabasesYTablas = async () => {
-        console.log('🗄️ Iniciando carga de bases de datos y tablas...');
+        console.log('Iniciando carga de bases de datos y tablas...');
         setLoadingDatabases(true);
         try {
             const url = 'http://localhost:8080/api/datawarehouse/databases-tables';
-            console.log('🌐 Petición a:', url);
+            console.log('Petición a:', url);
 
             const response = await fetch(url);
-            console.log('📡 Respuesta recibida:', {
+            console.log('Respuesta recibida:', {
                 status: response.status,
                 statusText: response.statusText,
                 ok: response.ok
@@ -35,8 +36,8 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             }
 
             const data = await response.json();
-            console.log('🗄️ Datos recibidos:', data);
-            console.log('📊 Número de bases de datos:', data.databases?.length || 0);
+            console.log('Datos recibidos:', data);
+            console.log('Número de bases de datos:', data.databases?.length || 0);
 
             if (data.databases && data.databases.length > 0) {
                 data.databases.forEach((db, index) => {
@@ -45,31 +46,31 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             }
 
             setDatabasesTablas(data.databases || []);
-            console.log('✅ Bases de datos y tablas cargadas exitosamente');
+            console.log('Bases de datos y tablas cargadas exitosamente');
         } catch (error) {
-            console.error('❌ Error al cargar databases y tablas:', error);
+            console.error('Error al cargar databases y tablas:', error);
             document.getElementById('modalDataWarehouseError').showModal();
         } finally {
             setLoadingDatabases(false);
-            console.log('🏁 Finalizó carga de bases de datos');
+            console.log('Finalizó carga de bases de datos');
         }
     };
 
     const cargarColumnasTabla = async (database, table) => {
-        console.log('📊 Cargando columnas para tabla:', { database, table });
+        console.log('Cargando columnas para tabla:', { database, table });
         const key = `${database}.${table}`;
 
         if (columnasTablas[key]) {
-            console.log('💾 Columnas ya cargadas en cache para:', key);
+            console.log('Columnas ya cargadas en cache para:', key);
             return;
         }
 
         try {
             const url = `http://localhost:8080/api/datawarehouse/table-columns?database=${database}&table=${table}`;
-            console.log('🌐 Petición a:', url);
+            console.log('Petición a:', url);
 
             const response = await fetch(url);
-            console.log('📡 Respuesta recibida:', {
+            console.log('Respuesta recibida:', {
                 status: response.status,
                 statusText: response.statusText,
                 ok: response.ok
@@ -80,24 +81,24 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             }
 
             const data = await response.json();
-            console.log('📊 Datos de columnas recibidos:', data);
-            console.log('🔢 Número de columnas:', data.columns?.length || 0);
+            console.log('Datos de columnas recibidos:', data);
+            console.log('Número de columnas:', data.columns?.length || 0);
 
             setColumnasTablas(prev => {
                 const updated = {
                     ...prev,
                     [key]: data.columns || []
                 };
-                console.log('💾 Cache de columnas actualizado:', Object.keys(updated));
+                console.log('Cache de columnas actualizado:', Object.keys(updated));
                 return updated;
             });
         } catch (error) {
-            console.error('❌ Error al cargar columnas para', key, ':', error);
+            console.error('Error al cargar columnas para', key, ':', error);
         }
     };
 
     const agregarTablaSeleccionada = (database, table) => {
-        console.log('➕ Agregando tabla seleccionada:', { database, table });
+        console.log('Agregando tabla seleccionada:', { database, table });
         const id = Date.now();
         const nuevaTabla = {
             id,
@@ -105,35 +106,35 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             table,
             alias: `${table}_${database}`
         };
-        console.log('📋 Nueva tabla creada:', nuevaTabla);
+        console.log('Nueva tabla creada:', nuevaTabla);
         setTablasSeleccionadas(prev => {
             const updated = [...prev, nuevaTabla];
-            console.log('📊 Tablas seleccionadas actualizadas:', updated);
+            console.log('Tablas seleccionadas actualizadas:', updated);
             return updated;
         });
         cargarColumnasTabla(database, table);
     };
 
     const removerTablaSeleccionada = (id) => {
-        console.log('🗑️ Removiendo tabla seleccionada con ID:', id);
+        console.log('Removiendo tabla seleccionada con ID:', id);
         const tablaARemover = tablasSeleccionadas.find(t => t.id === id);
-        console.log('📋 Tabla a remover:', tablaARemover);
+        console.log('Tabla a remover:', tablaARemover);
 
         setTablasSeleccionadas(prev => {
             const updated = prev.filter(tabla => tabla.id !== id);
-            console.log('📊 Tablas restantes:', updated);
+            console.log('Tablas restantes:', updated);
             return updated;
         });
 
         setColumnasSeleccionadas(prev => {
             const updated = prev.filter(col => col.tablaId !== id);
-            console.log('🔄 Columnas actualizadas tras remover tabla:', updated);
+            console.log('Columnas actualizadas tras remover tabla:', updated);
             return updated;
         });
 
         setRelaciones(prev => {
             const updated = prev.filter(rel => rel.tabla1Id !== id && rel.tabla2Id !== id);
-            console.log('🔗 Relaciones actualizadas tras remover tabla:', updated);
+            console.log('Relaciones actualizadas tras remover tabla:', updated);
             return updated;
         });
     };
@@ -147,9 +148,9 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
     };
 
     const agregarRelacion = () => {
-        console.log('🔗 Agregando nueva relación...');
+        console.log('Agregando nueva relación...');
         if (tablasSeleccionadas.length < 2) {
-            console.warn('⚠️ No hay suficientes tablas para crear relación (mínimo 2)');
+            console.warn('No hay suficientes tablas para crear relación (mínimo 2)');
             return;
         }
 
@@ -162,16 +163,16 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             tipo: 'INNER JOIN'
         };
 
-        console.log('🔗 Nueva relación creada:', nuevaRelacion);
+        console.log('Nueva relación creada:', nuevaRelacion);
         setRelaciones(prev => {
             const updated = [...prev, nuevaRelacion];
-            console.log('📊 Total de relaciones:', updated.length);
+            console.log('Total de relaciones:', updated.length);
             return updated;
         });
     };
 
     const actualizarRelacion = (id, campo, valor) => {
-        console.log(`🔄 Actualizando relación ${id}: ${campo} = ${valor}`);
+        console.log(`Actualizando relación ${id}: ${campo} = ${valor}`);
         setRelaciones(prev =>
             prev.map(rel =>
                 rel.id === id ? { ...rel, [campo]: valor } : rel
@@ -180,10 +181,10 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
     };
 
     const removerRelacion = (id) => {
-        console.log('🗑️ Removiendo relación con ID:', id);
+        console.log('Removiendo relación con ID:', id);
         setRelaciones(prev => {
             const updated = prev.filter(rel => rel.id !== id);
-            console.log('📊 Relaciones restantes:', updated.length);
+            console.log('Relaciones restantes:', updated.length);
             return updated;
         });
     };
@@ -191,7 +192,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
     const toggleColumnaSeleccionada = (tablaId, columna) => {
         const tabla = tablasSeleccionadas.find(t => t.id === tablaId);
         if (!tabla) {
-            console.warn('⚠️ No se encontró tabla con ID:', tablaId);
+            console.warn('No se encontró tabla con ID:', tablaId);
             return;
         }
 
@@ -205,15 +206,15 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             table: tabla.table
         };
 
-        console.log('🔄 Toggle columna:', columnaCompleta);
+        console.log('Toggle columna:', columnaCompleta);
 
         setColumnasSeleccionadas(prev => {
             const exists = prev.find(col => col.id === columnaCompleta.id);
             if (exists) {
-                console.log('➖ Removiendo columna:', columnaCompleta.nombre);
+                console.log('Removiendo columna:', columnaCompleta.nombre);
                 return prev.filter(col => col.id !== columnaCompleta.id);
             } else {
-                console.log('➕ Agregando columna:', columnaCompleta.nombre);
+                console.log('Agregando columna:', columnaCompleta.nombre);
                 return [...prev, columnaCompleta];
             }
         });
@@ -239,31 +240,31 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
         console.log('=== INICIANDO CREACIÓN DE DATA WAREHOUSE ===');
 
         if (!nombreDataWarehouse.trim()) {
-            console.log('❌ Error: Nombre del Data Warehouse vacío');
+            console.log('Error: Nombre del Data Warehouse vacío');
             document.getElementById('modalDataWarehouseNombreError').showModal();
             return;
         }
 
         if (!nombreTablaWarehouse.trim()) {
-            console.log('❌ Error: Nombre de tabla principal vacío');
+            console.log('Error: Nombre de tabla principal vacío');
             document.getElementById('modalDataWarehouseTablaNombreError').showModal();
             return;
         }
 
         if (tablasSeleccionadas.length === 0) {
-            console.log('❌ Error: No hay tablas seleccionadas');
+            console.log('Error: No hay tablas seleccionadas');
             document.getElementById('modalDataWarehouseTablasError').showModal();
             return;
         }
 
         if (columnasSeleccionadas.length === 0) {
-            console.log('❌ Error: No hay columnas seleccionadas');
+            console.log('Error: No hay columnas seleccionadas');
             document.getElementById('modalDataWarehouseColumnasError').showModal();
             return;
         }
 
-        console.log('✅ Validaciones iniciales pasadas');
-        console.log('📊 Estado actual:');
+        console.log('Validaciones iniciales pasadas');
+        console.log('Estado actual:');
         console.log('- Nombre DW:', nombreDataWarehouse);
         console.log('- Nombre tabla:', nombreTablaWarehouse);
         console.log('- Tablas seleccionadas:', tablasSeleccionadas.length);
@@ -278,7 +279,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
 
         try {
             const warehouseNameWithSuffix = `${nombreDataWarehouse}_warehouse`;
-            console.log('🏗️ Nombre final del Data Warehouse:', warehouseNameWithSuffix);
+            console.log('Nombre final del Data Warehouse:', warehouseNameWithSuffix);
 
             // Mapear tablas seleccionadas
             const selectedTables = tablasSeleccionadas.map(tabla => ({
@@ -286,10 +287,10 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                 table: tabla.table,
                 alias: tabla.alias
             }));
-            console.log('📋 Tablas mapeadas para envío:', selectedTables);
+            console.log('Tablas mapeadas para envío:', selectedTables);
 
             // Mapear relaciones
-            console.log('🔗 Procesando relaciones...');
+            console.log('Procesando relaciones...');
             const relationships = relaciones.map((rel, index) => {
                 console.log(`  Relación ${index + 1}:`);
                 console.log(`    - tabla1Id: ${rel.tabla1Id}, tabla2Id: ${rel.tabla2Id}`);
@@ -300,10 +301,10 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                 const tabla2 = tablasSeleccionadas.find(t => t.id === rel.tabla2Id);
 
                 if (!tabla1) {
-                    console.warn(`⚠️ No se encontró tabla1 con ID ${rel.tabla1Id}`);
+                    console.warn(`No se encontró tabla1 con ID ${rel.tabla1Id}`);
                 }
                 if (!tabla2) {
-                    console.warn(`⚠️ No se encontró tabla2 con ID ${rel.tabla2Id}`);
+                    console.warn(`No se encontró tabla2 con ID ${rel.tabla2Id}`);
                 }
 
                 const relationship = {
@@ -320,12 +321,12 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                     type: rel.tipo
                 };
 
-                console.log(`    ✅ Relación mapeada:`, relationship);
+                console.log(`    Relación mapeada:`, relationship);
                 return relationship;
             });
 
             // Mapear columnas seleccionadas
-            console.log('📊 Procesando columnas seleccionadas...');
+            console.log('Procesando columnas seleccionadas...');
             const selectedColumnsForRequest = columnasSeleccionadas.map((col, index) => {
                 console.log(`  Columna ${index + 1}: ${col.database}.${col.table}.${col.nombre} AS ${col.alias} (${col.tipo})`);
                 return {
@@ -345,35 +346,35 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                 relationships
             };
 
-            console.log('📤 Estructura completa del request body:');
+            console.log('Estructura completa del request body:');
             console.log('===============================================');
             console.log(JSON.stringify(requestBody, null, 2));
             console.log('===============================================');
 
             // Validaciones adicionales antes del envío
-            console.log('🔍 Validaciones finales:');
+            console.log('Validaciones finales:');
             console.log('- Todas las relaciones tienen columnas definidas?');
             relationships.forEach((rel, i) => {
                 if (!rel.table1.column || !rel.table2.column) {
-                    console.warn(`⚠️ Relación ${i + 1} tiene columnas vacías:`, rel);
+                    console.warn(`Relación ${i + 1} tiene columnas vacías:`, rel);
                 } else {
-                    console.log(`✅ Relación ${i + 1} OK: ${rel.table1.database}.${rel.table1.table}.${rel.table1.column} ${rel.type} ${rel.table2.database}.${rel.table2.table}.${rel.table2.column}`);
+                    console.log(`Relación ${i + 1} OK: ${rel.table1.database}.${rel.table1.table}.${rel.table1.column} ${rel.type} ${rel.table2.database}.${rel.table2.table}.${rel.table2.column}`);
                 }
             });
 
             console.log('- Todas las columnas tienen alias?');
             selectedColumnsForRequest.forEach((col, i) => {
                 if (!col.alias.trim()) {
-                    console.warn(`⚠️ Columna ${i + 1} no tiene alias:`, col);
+                    console.warn(`Columna ${i + 1} no tiene alias:`, col);
                 } else {
-                    console.log(`✅ Columna ${i + 1} OK: ${col.database}.${col.table}.${col.column} AS ${col.alias}`);
+                    console.log(`Columna ${i + 1} OK: ${col.database}.${col.table}.${col.column} AS ${col.alias}`);
                 }
             });
 
-            console.log('🚀 Enviando request al backend...');
-            console.log('🌐 URL:', 'http://localhost:8080/api/datawarehouse/create');
-            console.log('📨 Método: POST');
-            console.log('📝 Headers:', { 'Content-Type': 'application/json' });
+            console.log('Enviando request al backend...');
+            console.log('URL:', 'http://localhost:8080/api/datawarehouse/create');
+            console.log('Método: POST');
+            console.log('Headers:', { 'Content-Type': 'application/json' });
 
             const response = await fetch('http://localhost:8080/api/datawarehouse/create', {
                 method: 'POST',
@@ -383,7 +384,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                 body: JSON.stringify(requestBody)
             });
 
-            console.log('📡 Respuesta recibida del backend:');
+            console.log('Respuesta recibida del backend:');
             console.log('- Status:', response.status);
             console.log('- Status Text:', response.statusText);
             console.log('- OK:', response.ok);
@@ -391,16 +392,16 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('❌ Error del backend:', errorText);
+                console.error('Error del backend:', errorText);
                 throw new Error(`Error ${response.status}: ${response.statusText}. Detalles: ${errorText}`);
             }
 
             const data = await response.json();
-            console.log('📊 Datos de respuesta del backend:');
+            console.log('Datos de respuesta del backend:');
             console.log(JSON.stringify(data, null, 2));
 
-            console.log('✅ Data Warehouse creado exitosamente!');
-            console.log('🏗️ Creando mensaje para mostrar en textarea...');
+            console.log('Data Warehouse creado exitosamente!');
+            console.log('Creando mensaje para mostrar en textarea...');
 
             const textarea = document.getElementById('resultadoConsulta');
             if (textarea) {
@@ -437,53 +438,81 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                 }
 
                 textarea.value = resultado;
-                console.log('📝 Resultado mostrado en textarea:', resultado);
+                console.log('Resultado mostrado en textarea:', resultado);
             } else {
-                console.warn('⚠️ No se encontró el textarea con ID "resultadoConsulta"');
-            }
-
-            console.log('🧹 Limpiando formulario...');
+                console.warn('No se encontró el textarea con ID "resultadoConsulta"');
+            } console.log('Limpiando formulario...');
             setNombreDataWarehouse('');
             setNombreTablaWarehouse('');
             setTablasSeleccionadas([]);
             setColumnasSeleccionadas([]);
             setRelaciones([]);
 
-            console.log('🔒 Cerrando modal de creación...');
+            console.log('Cerrando modal de creación...');
             document.getElementById('modalCrearDataWarehouse').close();
 
-            console.log('🎉 Mostrando modal de éxito...');
+            // Emitir evento para notificar a otros componentes
+            console.log('Emitiendo evento datawarehouseCreated');
+            window.dispatchEvent(new CustomEvent('datawarehouseCreated', {
+                detail: {
+                    createdWarehouse: warehouseNameWithSuffix,
+                    tableName: nombreTablaWarehouse,
+                    tableCount: selectedTables.length,
+                    columnCount: columnasSeleccionadas.length
+                }
+            }));
+
+            console.log('Mostrando modal de éxito...');
             document.getElementById('modalDataWarehouseExito').showModal();
 
         } catch (error) {
-            console.error('❌ ERROR en creación de Data Warehouse:');
+            console.error('ERROR en creación de Data Warehouse:');
             console.error('- Mensaje:', error.message);
             console.error('- Stack:', error.stack);
             console.error('- Error completo:', error);
 
+            // Preparar mensaje de error detallado para el modal
+            let errorMessage = `${error.message}\n\n`;
+            errorMessage += `CONFIGURACIÓN INTENTADA:\n`;
+            errorMessage += `• Nombre DW: ${nombreDataWarehouse}_warehouse\n`;
+            errorMessage += `• Tabla principal: ${nombreTablaWarehouse}\n`;
+            errorMessage += `• Tablas seleccionadas: ${tablasSeleccionadas.length}\n`;
+            errorMessage += `• Columnas seleccionadas: ${columnasSeleccionadas.length}\n`;
+            errorMessage += `• Relaciones definidas: ${relaciones.length}`;
+
+            setErrorMessage(errorMessage);
+            console.log('Mensaje de error preparado para modal');
+
+            // También mostrar en textarea como respaldo
             const textarea = document.getElementById('resultadoConsulta');
             if (textarea) {
-                let errorMessage = `❌ ERROR AL CREAR DATA WAREHOUSE\n\n`;
-                errorMessage += `Mensaje: ${error.message}\n\n`;
-                errorMessage += `CONFIGURACIÓN INTENTADA:\n`;
-                errorMessage += `- Nombre DW: ${nombreDataWarehouse}_warehouse\n`;
-                errorMessage += `- Tabla principal: ${nombreTablaWarehouse}\n`;
-                errorMessage += `- Tablas seleccionadas: ${tablasSeleccionadas.length}\n`;
-                errorMessage += `- Columnas seleccionadas: ${columnasSeleccionadas.length}\n`;
-                errorMessage += `- Relaciones definidas: ${relaciones.length}\n\n`;
-                errorMessage += `Hora del error: ${new Date().toLocaleString()}\n`;
-                textarea.value = errorMessage;
-                console.log('📝 Mensaje de error mostrado en textarea');
+                let textareaMessage = `ERROR AL CREAR DATA WAREHOUSE\n\n${errorMessage}`;
+                textarea.value = textareaMessage;
+                console.log('Mensaje de error también mostrado en textarea como respaldo');
             } else {
-                console.warn('⚠️ No se encontró el textarea para mostrar el error');
+                console.warn('No se encontró el textarea para mostrar el error');
             }
 
-            console.log('⚠️ Mostrando modal de error...');
-            // Podrías mostrar un modal de error aquí si tienes uno
+            // Emitir evento para actualizar listas incluso en caso de error
+            // Esto asegura que si algo cambió en el backend, las listas se actualicen
+            console.log('Emitiendo evento datawarehouseCreated para actualizar listas tras error');
+            window.dispatchEvent(new CustomEvent('datawarehouseCreated', {
+                detail: {
+                    error: true,
+                    errorMessage: error.message,
+                    attemptedWarehouse: `${nombreDataWarehouse}_warehouse`
+                }
+            }));
+
+            console.log('Cerrando modal de creación...');
+            document.getElementById('modalCrearDataWarehouse').close();
+
+            console.log('Mostrando modal de error...');
+            document.getElementById('modalCrearDataWarehouseError').showModal();
         } finally {
-            console.log('🏁 Finalizando proceso de creación...');
+            console.log('Finalizando proceso de creación...');
             setIsLoading(false);
-            console.log('💡 Loading state establecido a false');
+            console.log('Loading state establecido a false');
         }
     };
     return (
@@ -575,7 +604,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                                     ) : (
                                         databasesTablas.map((db, dbIndex) => (
                                             <div key={dbIndex} className="mb-4">
-                                                <h4 className="font-bold text-lg text-primary mb-2">📁 {db.name}</h4>
+                                                <h4 className="font-bold text-lg text-primary mb-2">{db.name}</h4>
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                                     {db.tables.map((table, tableIndex) => (
                                                         <button
@@ -639,7 +668,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                                         return (
                                             <div key={tabla.id} className="bg-base-100 p-3 rounded-lg">
                                                 <h5 className="font-bold text-primary mb-2">
-                                                    📋 {tabla.database}.{tabla.table} ({tabla.alias})
+                                                    {tabla.database}.{tabla.table} ({tabla.alias})
                                                 </h5>
 
                                                 {columnasTabla.length === 0 ? (
@@ -835,7 +864,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             {/* Modales de Error */}
             <dialog id="modalDataWarehouseError" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg text-red-600">❌ Error</h3>
+                    <h3 className="font-bold text-lg text-red-600">Error</h3>
                     <p className="py-4">No se pudieron cargar las bases de datos y tablas.</p>
                     <div className="modal-action">
                         <button className="btn" onClick={() => document.getElementById('modalDataWarehouseError').close()}>
@@ -847,7 +876,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
 
             <dialog id="modalDataWarehouseNombreError" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg text-red-600">❌ Error</h3>
+                    <h3 className="font-bold text-lg text-red-600">Error</h3>
                     <p className="py-4">Por favor, ingresa un nombre para el Data Warehouse.</p>
                     <div className="modal-action">
                         <button className="btn" onClick={() => document.getElementById('modalDataWarehouseNombreError').close()}>
@@ -859,7 +888,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
 
             <dialog id="modalDataWarehouseTablasError" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg text-red-600">❌ Error</h3>
+                    <h3 className="font-bold text-lg text-red-600">Error</h3>
                     <p className="py-4">Por favor, selecciona al menos una tabla para el Data Warehouse.</p>
                     <div className="modal-action">
                         <button className="btn" onClick={() => document.getElementById('modalDataWarehouseTablasError').close()}>
@@ -871,7 +900,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
 
             <dialog id="modalDataWarehouseTablaNombreError" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg text-red-600">❌ Error</h3>
+                    <h3 className="font-bold text-lg text-red-600">Error</h3>
                     <p className="py-4">Por favor, ingresa un nombre para la tabla principal del Data Warehouse.</p>
                     <div className="modal-action">
                         <button className="btn" onClick={() => document.getElementById('modalDataWarehouseTablaNombreError').close()}>
@@ -883,7 +912,7 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
 
             <dialog id="modalDataWarehouseColumnasError" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg text-red-600">❌ Error</h3>
+                    <h3 className="font-bold text-lg text-red-600">Error</h3>
                     <p className="py-4">Por favor, selecciona al menos una columna para incluir en la tabla del Data Warehouse.</p>
                     <div className="modal-action">
                         <button className="btn" onClick={() => document.getElementById('modalDataWarehouseColumnasError').close()}>
@@ -895,11 +924,51 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
 
             <dialog id="modalDataWarehouseExito" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg text-green-600">✅ Éxito</h3>
+                    <h3 className="font-bold text-lg text-green-600">Éxito</h3>
                     <p className="py-4">Data Warehouse creado exitosamente.</p>
                     <div className="modal-action">
                         <button className="btn btn-primary" onClick={() => document.getElementById('modalDataWarehouseExito').close()}>
                             Aceptar
+                        </button>
+                    </div>
+                </div>
+            </dialog>
+
+            {/* Modal de Error de Creación */}
+            <dialog id="modalCrearDataWarehouseError" className="modal">
+                <div className="modal-box max-w-2xl">
+                    <h3 className="font-bold text-lg text-red-600">Error al Crear Data Warehouse</h3>
+                    <div className="py-4">
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                            <p className="text-red-800 font-semibold mb-2">Ha ocurrido un error durante la creación del Data Warehouse:</p>
+                            <pre className="text-sm text-red-700 whitespace-pre-wrap bg-red-100 p-3 rounded overflow-auto max-h-60">
+                                {errorMessage}
+                            </pre>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                            <p className="mb-2"><strong>Posibles causas:</strong></p>
+                            <ul className="list-disc list-inside space-y-1 ml-4">
+                                <li>Las columnas seleccionadas para las relaciones no son compatibles</li>
+                                <li>Falta definir alguna relación necesaria entre las tablas</li>
+                                <li>El nombre del Data Warehouse ya existe</li>
+                                <li>Error de conexión con la base de datos</li>
+                                <li>Problemas de permisos en el servidor</li>
+                            </ul>
+                            <p className="mt-3">
+                                <strong>Sugerencia:</strong> Revisa la configuración y vuelve a intentarlo.
+                                Si el problema persiste, verifica los logs del backend.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="modal-action">
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => {
+                                document.getElementById('modalCrearDataWarehouseError').close();
+                                setErrorMessage(''); // Limpiar el mensaje de error
+                            }}
+                        >
+                            Entendido
                         </button>
                     </div>
                 </div>
