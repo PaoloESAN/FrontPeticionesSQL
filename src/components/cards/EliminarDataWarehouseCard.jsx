@@ -47,22 +47,35 @@ export default function EliminarDataWarehouseCard() {
             return;
         }
 
+        document.getElementById('modalConfirmarEliminarDataWarehouse').showModal();
+    };
+
+    const confirmarEliminacion = async () => {
+        document.getElementById('modalConfirmarEliminarDataWarehouse').close();
+
         setIsLoading(true);
 
         try {
-            const response = await fetch(`http://localhost:8080/api/datawarehouse/delete/${warehouseSeleccionado}`, {
+            console.log('Eliminando Data Warehouse:', warehouseSeleccionado);
+
+            const response = await fetch(`http://localhost:8080/api/datawarehouse/delete/${encodeURIComponent(warehouseSeleccionado)}`, {
                 method: 'DELETE'
             });
 
+            console.log('Status de respuesta:', response.status);
+
             if (!response.ok) {
-                throw new Error(`Error: ${response.status} ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('Error del servidor:', errorText);
+                throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
             }
 
             const data = await response.json();
+            console.log('Respuesta de eliminación:', data);
 
             let resultado = `=== DATA WAREHOUSE ELIMINADO EXITOSAMENTE ===\n\n`;
             resultado += `Nombre: ${warehouseSeleccionado}\n`;
-            resultado += `Mensaje: ${data.message}\n`;
+            resultado += `Mensaje: ${data.message || 'Data Warehouse eliminado correctamente'}\n`;
             resultado += `Fecha de eliminación: ${new Date().toLocaleString()}\n`;
 
             setResultados(resultado);
@@ -79,6 +92,10 @@ export default function EliminarDataWarehouseCard() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const cancelarEliminacion = () => {
+        document.getElementById('modalConfirmarEliminarDataWarehouse').close();
     };
 
     return (
@@ -105,6 +122,15 @@ export default function EliminarDataWarehouseCard() {
                             ))}
                         </select>
                     </div>
+
+                    {/* Advertencia de seguridad */}
+                    {warehouseSeleccionado && (
+                        <div className="bg-error bg-opacity-20 p-3 rounded-lg border border-error">
+                            <p className="text-white text-xs">
+                                ⚠️ <strong>Advertencia:</strong> Esta acción eliminará completamente el Data Warehouse "{warehouseSeleccionado}" y todos sus datos. No se puede deshacer.
+                            </p>
+                        </div>
+                    )}
 
                     {/* Botón para eliminar */}
                     <div className="justify-end card-actions">
@@ -171,6 +197,33 @@ export default function EliminarDataWarehouseCard() {
                             onClick={() => document.getElementById('modalEliminarDataWarehouseErrorDelete').close()}
                         >
                             Cerrar
+                        </button>
+                    </div>
+                </div>
+            </dialog>
+
+            {/* Modal de confirmación */}
+            <dialog id="modalConfirmarEliminarDataWarehouse" className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg">Confirmar eliminación</h3>
+                    <p className="py-4">
+                        ¿Estás seguro de que quieres eliminar el Data Warehouse "{warehouseSeleccionado}"?
+                        <br />
+                        <span className="text-warning font-semibold">Esta acción eliminará toda la base de datos y no se puede deshacer.</span>
+                    </p>
+                    <div className="modal-action">
+                        <button
+                            className="btn btn-ghost"
+                            onClick={cancelarEliminacion}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            className="btn btn-error"
+                            onClick={confirmarEliminacion}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Eliminando...' : 'Eliminar Data Warehouse'}
                         </button>
                     </div>
                 </div>

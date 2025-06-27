@@ -69,7 +69,7 @@ export default function Inicio() {
 
                 data = await response.json();
             }
-            if (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures') {
+            if (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures' || pestanaActiva === 'datawarehouse') {
                 console.log('Procesando datos para tabla:', { datosDirectos: !!datosDirectos, data, pestanaActiva });
 
                 setConsultaEjecutada(true);
@@ -215,7 +215,7 @@ export default function Inicio() {
         setMostrarTabla(false);
         document.getElementById('sidebar-drawer').checked = false;
     }; const renderResultados = () => {
-        const deberiasMostrarTabla = mostrarTabla && (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures');
+        const deberiasMostrarTabla = mostrarTabla && (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures' || pestanaActiva === 'datawarehouse');
 
         console.log('renderResultados:', {
             deberiasMostrarTabla,

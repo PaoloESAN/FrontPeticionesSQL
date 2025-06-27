@@ -12,46 +12,92 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
     const [columnasTablas, setColumnasTablas] = useState({});
 
     useEffect(() => {
+        console.log('🚀 Componente CrearDataWarehouseCard montado - Iniciando carga inicial');
         cargarDatabasesYTablas();
     }, []);
 
     const cargarDatabasesYTablas = async () => {
+        console.log('🗄️ Iniciando carga de bases de datos y tablas...');
         setLoadingDatabases(true);
         try {
-            const response = await fetch('http://localhost:8080/api/datawarehouse/databases-tables');
+            const url = 'http://localhost:8080/api/datawarehouse/databases-tables';
+            console.log('🌐 Petición a:', url);
+
+            const response = await fetch(url);
+            console.log('📡 Respuesta recibida:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok
+            });
+
             if (!response.ok) {
                 throw new Error(`Error: ${response.status} ${response.statusText}`);
             }
+
             const data = await response.json();
+            console.log('🗄️ Datos recibidos:', data);
+            console.log('📊 Número de bases de datos:', data.databases?.length || 0);
+
+            if (data.databases && data.databases.length > 0) {
+                data.databases.forEach((db, index) => {
+                    console.log(`  ${index + 1}. ${db.name} (${db.tables?.length || 0} tablas)`);
+                });
+            }
+
             setDatabasesTablas(data.databases || []);
+            console.log('✅ Bases de datos y tablas cargadas exitosamente');
         } catch (error) {
-            console.error('Error al cargar databases y tablas:', error);
+            console.error('❌ Error al cargar databases y tablas:', error);
             document.getElementById('modalDataWarehouseError').showModal();
         } finally {
             setLoadingDatabases(false);
+            console.log('🏁 Finalizó carga de bases de datos');
         }
     };
 
     const cargarColumnasTabla = async (database, table) => {
+        console.log('📊 Cargando columnas para tabla:', { database, table });
         const key = `${database}.${table}`;
-        if (columnasTablas[key]) return;
+
+        if (columnasTablas[key]) {
+            console.log('💾 Columnas ya cargadas en cache para:', key);
+            return;
+        }
 
         try {
-            const response = await fetch(`http://localhost:8080/api/datawarehouse/table-columns?database=${database}&table=${table}`);
+            const url = `http://localhost:8080/api/datawarehouse/table-columns?database=${database}&table=${table}`;
+            console.log('🌐 Petición a:', url);
+
+            const response = await fetch(url);
+            console.log('📡 Respuesta recibida:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok
+            });
+
             if (!response.ok) {
                 throw new Error(`Error: ${response.status} ${response.statusText}`);
             }
+
             const data = await response.json();
-            setColumnasTablas(prev => ({
-                ...prev,
-                [key]: data.columns || []
-            }));
+            console.log('📊 Datos de columnas recibidos:', data);
+            console.log('🔢 Número de columnas:', data.columns?.length || 0);
+
+            setColumnasTablas(prev => {
+                const updated = {
+                    ...prev,
+                    [key]: data.columns || []
+                };
+                console.log('💾 Cache de columnas actualizado:', Object.keys(updated));
+                return updated;
+            });
         } catch (error) {
-            console.error('Error al cargar columnas:', error);
+            console.error('❌ Error al cargar columnas para', key, ':', error);
         }
     };
 
     const agregarTablaSeleccionada = (database, table) => {
+        console.log('➕ Agregando tabla seleccionada:', { database, table });
         const id = Date.now();
         const nuevaTabla = {
             id,
@@ -59,16 +105,37 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             table,
             alias: `${table}_${database}`
         };
-        setTablasSeleccionadas(prev => [...prev, nuevaTabla]);
+        console.log('📋 Nueva tabla creada:', nuevaTabla);
+        setTablasSeleccionadas(prev => {
+            const updated = [...prev, nuevaTabla];
+            console.log('📊 Tablas seleccionadas actualizadas:', updated);
+            return updated;
+        });
         cargarColumnasTabla(database, table);
     };
 
     const removerTablaSeleccionada = (id) => {
-        setTablasSeleccionadas(prev => prev.filter(tabla => tabla.id !== id));
-        setColumnasSeleccionadas(prev => prev.filter(col => col.tablaId !== id));
-        setRelaciones(prev => prev.filter(rel =>
-            rel.tabla1Id !== id && rel.tabla2Id !== id
-        ));
+        console.log('🗑️ Removiendo tabla seleccionada con ID:', id);
+        const tablaARemover = tablasSeleccionadas.find(t => t.id === id);
+        console.log('📋 Tabla a remover:', tablaARemover);
+
+        setTablasSeleccionadas(prev => {
+            const updated = prev.filter(tabla => tabla.id !== id);
+            console.log('📊 Tablas restantes:', updated);
+            return updated;
+        });
+
+        setColumnasSeleccionadas(prev => {
+            const updated = prev.filter(col => col.tablaId !== id);
+            console.log('🔄 Columnas actualizadas tras remover tabla:', updated);
+            return updated;
+        });
+
+        setRelaciones(prev => {
+            const updated = prev.filter(rel => rel.tabla1Id !== id && rel.tabla2Id !== id);
+            console.log('🔗 Relaciones actualizadas tras remover tabla:', updated);
+            return updated;
+        });
     };
 
     const actualizarAlias = (id, nuevoAlias) => {
@@ -80,7 +147,11 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
     };
 
     const agregarRelacion = () => {
-        if (tablasSeleccionadas.length < 2) return;
+        console.log('🔗 Agregando nueva relación...');
+        if (tablasSeleccionadas.length < 2) {
+            console.warn('⚠️ No hay suficientes tablas para crear relación (mínimo 2)');
+            return;
+        }
 
         const nuevaRelacion = {
             id: Date.now(),
@@ -88,12 +159,19 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             tabla1Columna: '',
             tabla2Id: tablasSeleccionadas[1].id,
             tabla2Columna: '',
-            tipo: 'INNER_JOIN'
+            tipo: 'INNER JOIN'
         };
-        setRelaciones(prev => [...prev, nuevaRelacion]);
+
+        console.log('🔗 Nueva relación creada:', nuevaRelacion);
+        setRelaciones(prev => {
+            const updated = [...prev, nuevaRelacion];
+            console.log('📊 Total de relaciones:', updated.length);
+            return updated;
+        });
     };
 
     const actualizarRelacion = (id, campo, valor) => {
+        console.log(`🔄 Actualizando relación ${id}: ${campo} = ${valor}`);
         setRelaciones(prev =>
             prev.map(rel =>
                 rel.id === id ? { ...rel, [campo]: valor } : rel
@@ -102,12 +180,20 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
     };
 
     const removerRelacion = (id) => {
-        setRelaciones(prev => prev.filter(rel => rel.id !== id));
+        console.log('🗑️ Removiendo relación con ID:', id);
+        setRelaciones(prev => {
+            const updated = prev.filter(rel => rel.id !== id);
+            console.log('📊 Relaciones restantes:', updated.length);
+            return updated;
+        });
     };
 
     const toggleColumnaSeleccionada = (tablaId, columna) => {
         const tabla = tablasSeleccionadas.find(t => t.id === tablaId);
-        if (!tabla) return;
+        if (!tabla) {
+            console.warn('⚠️ No se encontró tabla con ID:', tablaId);
+            return;
+        }
 
         const columnaCompleta = {
             id: `${tablaId}_${columna.name}`,
@@ -119,11 +205,15 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
             table: tabla.table
         };
 
+        console.log('🔄 Toggle columna:', columnaCompleta);
+
         setColumnasSeleccionadas(prev => {
             const exists = prev.find(col => col.id === columnaCompleta.id);
             if (exists) {
+                console.log('➖ Removiendo columna:', columnaCompleta.nombre);
                 return prev.filter(col => col.id !== columnaCompleta.id);
             } else {
+                console.log('➕ Agregando columna:', columnaCompleta.nombre);
                 return [...prev, columnaCompleta];
             }
         });
@@ -146,25 +236,39 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
     };
 
     const crearDataWarehouse = async () => {
+        console.log('=== INICIANDO CREACIÓN DE DATA WAREHOUSE ===');
+
         if (!nombreDataWarehouse.trim()) {
+            console.log('❌ Error: Nombre del Data Warehouse vacío');
             document.getElementById('modalDataWarehouseNombreError').showModal();
             return;
         }
 
         if (!nombreTablaWarehouse.trim()) {
+            console.log('❌ Error: Nombre de tabla principal vacío');
             document.getElementById('modalDataWarehouseTablaNombreError').showModal();
             return;
         }
 
         if (tablasSeleccionadas.length === 0) {
+            console.log('❌ Error: No hay tablas seleccionadas');
             document.getElementById('modalDataWarehouseTablasError').showModal();
             return;
         }
 
         if (columnasSeleccionadas.length === 0) {
+            console.log('❌ Error: No hay columnas seleccionadas');
             document.getElementById('modalDataWarehouseColumnasError').showModal();
             return;
         }
+
+        console.log('✅ Validaciones iniciales pasadas');
+        console.log('📊 Estado actual:');
+        console.log('- Nombre DW:', nombreDataWarehouse);
+        console.log('- Nombre tabla:', nombreTablaWarehouse);
+        console.log('- Tablas seleccionadas:', tablasSeleccionadas.length);
+        console.log('- Columnas seleccionadas:', columnasSeleccionadas.length);
+        console.log('- Relaciones definidas:', relaciones.length);
 
         if (onMostrarEnTextarea) {
             await onMostrarEnTextarea();
@@ -174,29 +278,62 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
 
         try {
             const warehouseNameWithSuffix = `${nombreDataWarehouse}_warehouse`;
+            console.log('🏗️ Nombre final del Data Warehouse:', warehouseNameWithSuffix);
 
+            // Mapear tablas seleccionadas
             const selectedTables = tablasSeleccionadas.map(tabla => ({
                 database: tabla.database,
                 table: tabla.table,
                 alias: tabla.alias
             }));
+            console.log('📋 Tablas mapeadas para envío:', selectedTables);
 
-            const relationships = relaciones.map(rel => {
+            // Mapear relaciones
+            console.log('🔗 Procesando relaciones...');
+            const relationships = relaciones.map((rel, index) => {
+                console.log(`  Relación ${index + 1}:`);
+                console.log(`    - tabla1Id: ${rel.tabla1Id}, tabla2Id: ${rel.tabla2Id}`);
+                console.log(`    - tipo: ${rel.tipo}`);
+                console.log(`    - columna1: ${rel.tabla1Columna}, columna2: ${rel.tabla2Columna}`);
+
                 const tabla1 = tablasSeleccionadas.find(t => t.id === rel.tabla1Id);
                 const tabla2 = tablasSeleccionadas.find(t => t.id === rel.tabla2Id);
 
-                return {
+                if (!tabla1) {
+                    console.warn(`⚠️ No se encontró tabla1 con ID ${rel.tabla1Id}`);
+                }
+                if (!tabla2) {
+                    console.warn(`⚠️ No se encontró tabla2 con ID ${rel.tabla2Id}`);
+                }
+
+                const relationship = {
                     table1: {
-                        database: tabla1.database,
-                        table: tabla1.table,
+                        database: tabla1?.database,
+                        table: tabla1?.table,
                         column: rel.tabla1Columna
                     },
                     table2: {
-                        database: tabla2.database,
-                        table: tabla2.table,
+                        database: tabla2?.database,
+                        table: tabla2?.table,
                         column: rel.tabla2Columna
                     },
                     type: rel.tipo
+                };
+
+                console.log(`    ✅ Relación mapeada:`, relationship);
+                return relationship;
+            });
+
+            // Mapear columnas seleccionadas
+            console.log('📊 Procesando columnas seleccionadas...');
+            const selectedColumnsForRequest = columnasSeleccionadas.map((col, index) => {
+                console.log(`  Columna ${index + 1}: ${col.database}.${col.table}.${col.nombre} AS ${col.alias} (${col.tipo})`);
+                return {
+                    database: col.database,
+                    table: col.table,
+                    column: col.nombre,
+                    alias: col.alias,
+                    type: col.tipo
                 };
             });
 
@@ -204,17 +341,39 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                 name: warehouseNameWithSuffix,
                 tableName: nombreTablaWarehouse,
                 selectedTables,
-                selectedColumns: columnasSeleccionadas.map(col => ({
-                    database: col.database,
-                    table: col.table,
-                    column: col.nombre,
-                    alias: col.alias,
-                    type: col.tipo
-                })),
+                selectedColumns: selectedColumnsForRequest,
                 relationships
             };
 
-            console.log('Enviando al backend:', JSON.stringify(requestBody, null, 2));
+            console.log('📤 Estructura completa del request body:');
+            console.log('===============================================');
+            console.log(JSON.stringify(requestBody, null, 2));
+            console.log('===============================================');
+
+            // Validaciones adicionales antes del envío
+            console.log('🔍 Validaciones finales:');
+            console.log('- Todas las relaciones tienen columnas definidas?');
+            relationships.forEach((rel, i) => {
+                if (!rel.table1.column || !rel.table2.column) {
+                    console.warn(`⚠️ Relación ${i + 1} tiene columnas vacías:`, rel);
+                } else {
+                    console.log(`✅ Relación ${i + 1} OK: ${rel.table1.database}.${rel.table1.table}.${rel.table1.column} ${rel.type} ${rel.table2.database}.${rel.table2.table}.${rel.table2.column}`);
+                }
+            });
+
+            console.log('- Todas las columnas tienen alias?');
+            selectedColumnsForRequest.forEach((col, i) => {
+                if (!col.alias.trim()) {
+                    console.warn(`⚠️ Columna ${i + 1} no tiene alias:`, col);
+                } else {
+                    console.log(`✅ Columna ${i + 1} OK: ${col.database}.${col.table}.${col.column} AS ${col.alias}`);
+                }
+            });
+
+            console.log('🚀 Enviando request al backend...');
+            console.log('🌐 URL:', 'http://localhost:8080/api/datawarehouse/create');
+            console.log('📨 Método: POST');
+            console.log('📝 Headers:', { 'Content-Type': 'application/json' });
 
             const response = await fetch('http://localhost:8080/api/datawarehouse/create', {
                 method: 'POST',
@@ -224,20 +383,33 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                 body: JSON.stringify(requestBody)
             });
 
+            console.log('📡 Respuesta recibida del backend:');
+            console.log('- Status:', response.status);
+            console.log('- Status Text:', response.statusText);
+            console.log('- OK:', response.ok);
+            console.log('- Headers:', Object.fromEntries(response.headers.entries()));
+
             if (!response.ok) {
-                throw new Error(`Error: ${response.status} ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('❌ Error del backend:', errorText);
+                throw new Error(`Error ${response.status}: ${response.statusText}. Detalles: ${errorText}`);
             }
 
             const data = await response.json();
+            console.log('📊 Datos de respuesta del backend:');
+            console.log(JSON.stringify(data, null, 2));
+
+            console.log('✅ Data Warehouse creado exitosamente!');
+            console.log('🏗️ Creando mensaje para mostrar en textarea...');
 
             const textarea = document.getElementById('resultadoConsulta');
             if (textarea) {
                 let resultado = `=== DATA WAREHOUSE CREADO EXITOSAMENTE ===\n\n`;
-                resultado += `Nombre: ${data.warehouseName}\n`;
+                resultado += `Nombre: ${data.warehouseName || warehouseNameWithSuffix}\n`;
                 resultado += `Tabla principal: ${nombreTablaWarehouse}\n`;
-                resultado += `Mensaje: ${data.message}\n\n`;
+                resultado += `Mensaje del backend: ${data.message || 'Sin mensaje específico'}\n\n`;
 
-                resultado += `TABLAS INCLUIDAS:\n`;
+                resultado += `TABLAS INCLUIDAS (${selectedTables.length}):\n`;
                 selectedTables.forEach((tabla, index) => {
                     resultado += `${index + 1}. ${tabla.database}.${tabla.table} (Alias: ${tabla.alias})\n`;
                 });
@@ -248,32 +420,70 @@ export default function CrearDataWarehouseCard({ onMostrarEnTextarea }) {
                 });
 
                 if (relationships.length > 0) {
-                    resultado += `\nRELACIONES DEFINIDAS:\n`;
+                    resultado += `\nRELACIONES DEFINIDAS (${relationships.length}):\n`;
                     relationships.forEach((rel, index) => {
                         resultado += `${index + 1}. ${rel.table1.database}.${rel.table1.table}.${rel.table1.column} ${rel.type} ${rel.table2.database}.${rel.table2.table}.${rel.table2.column}\n`;
                     });
+                } else {
+                    resultado += `\nRELACIONES: Ninguna definida\n`;
+                }
+
+                if (data.sql) {
+                    resultado += `\nSQL EJECUTADO:\n${data.sql}\n`;
+                }
+
+                if (data.details) {
+                    resultado += `\nDETALLES ADICIONALES:\n${JSON.stringify(data.details, null, 2)}\n`;
                 }
 
                 textarea.value = resultado;
+                console.log('📝 Resultado mostrado en textarea:', resultado);
+            } else {
+                console.warn('⚠️ No se encontró el textarea con ID "resultadoConsulta"');
             }
 
+            console.log('🧹 Limpiando formulario...');
             setNombreDataWarehouse('');
             setNombreTablaWarehouse('');
             setTablasSeleccionadas([]);
             setColumnasSeleccionadas([]);
             setRelaciones([]);
+
+            console.log('🔒 Cerrando modal de creación...');
             document.getElementById('modalCrearDataWarehouse').close();
 
+            console.log('🎉 Mostrando modal de éxito...');
             document.getElementById('modalDataWarehouseExito').showModal();
 
         } catch (error) {
-            console.error('Error al crear Data Warehouse:', error);
+            console.error('❌ ERROR en creación de Data Warehouse:');
+            console.error('- Mensaje:', error.message);
+            console.error('- Stack:', error.stack);
+            console.error('- Error completo:', error);
+
             const textarea = document.getElementById('resultadoConsulta');
             if (textarea) {
-                textarea.value = `Error al crear Data Warehouse: ${error.message}`;
+                let errorMessage = `❌ ERROR AL CREAR DATA WAREHOUSE\n\n`;
+                errorMessage += `Mensaje: ${error.message}\n\n`;
+                errorMessage += `CONFIGURACIÓN INTENTADA:\n`;
+                errorMessage += `- Nombre DW: ${nombreDataWarehouse}_warehouse\n`;
+                errorMessage += `- Tabla principal: ${nombreTablaWarehouse}\n`;
+                errorMessage += `- Tablas seleccionadas: ${tablasSeleccionadas.length}\n`;
+                errorMessage += `- Columnas seleccionadas: ${columnasSeleccionadas.length}\n`;
+                errorMessage += `- Relaciones definidas: ${relaciones.length}\n\n`;
+                errorMessage += `Hora del error: ${new Date().toLocaleString()}\n`;
+                textarea.value = errorMessage;
+                console.log('📝 Mensaje de error mostrado en textarea');
+            } else {
+                console.warn('⚠️ No se encontró el textarea para mostrar el error');
             }
+
+            console.log('⚠️ Mostrando modal de error...');
+            // Podrías mostrar un modal de error aquí si tienes uno
         } finally {
+            console.log('🏁 Finalizando proceso de creación...');
             setIsLoading(false);
+            console.log('💡 Loading state establecido a false');
         }
     };
     return (

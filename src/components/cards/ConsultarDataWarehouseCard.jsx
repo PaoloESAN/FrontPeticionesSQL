@@ -55,15 +55,8 @@ export default function ConsultarDataWarehouseCard({ onEjecutarConsulta }) {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:8080/api/datawarehouse/query', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    warehouse: warehouseSeleccionado,
-                    query: consultaSQL
-                })
+            const response = await fetch(`http://localhost:8080/api/consultaSelect?bd=${warehouseSeleccionado}&sql=${encodeURIComponent(consultaSQL)}`, {
+                method: 'GET',
             });
 
             if (!response.ok) {
@@ -71,9 +64,13 @@ export default function ConsultarDataWarehouseCard({ onEjecutarConsulta }) {
             }
 
             const data = await response.json();
+            console.log('Respuesta de consulta Data Warehouse:', data);
 
             if (onEjecutarConsulta) {
+                console.log('Llamando onEjecutarConsulta con:', { consultaSQL, warehouseSeleccionado, data });
                 await onEjecutarConsulta(consultaSQL, warehouseSeleccionado, data);
+            } else {
+                console.warn('onEjecutarConsulta no está definida');
             }
 
         } catch (error) {
@@ -113,7 +110,7 @@ export default function ConsultarDataWarehouseCard({ onEjecutarConsulta }) {
                     <div className="form-control">
                         <textarea
                             className="textarea textarea-bordered textarea-info w-full h-16 font-mono text-sm"
-                            placeholder="Escribe tu consulta SQL aquí..."
+                            placeholder="SELECT * FROM tabla_principal WHERE..."
                             value={consultaSQL}
                             onChange={(e) => setConsultaSQL(e.target.value)}
                         />
@@ -121,10 +118,15 @@ export default function ConsultarDataWarehouseCard({ onEjecutarConsulta }) {
 
                     {/* Información de ayuda */}
                     {warehouseSeleccionado && (
-                        <div className="bg-info bg-opacity-20 p-2 rounded-lg">
-                            <p className="text-white text-xs">
-                                💡 <strong>Tip:</strong> Usa los alias definidos al crear el Data Warehouse "{warehouseSeleccionado}".
+                        <div className="bg-info bg-opacity-20 p-3 rounded-lg">
+                            <p className="text-white text-xs mb-2">
+                                💡 <strong>Tips para consultar "{warehouseSeleccionado}":</strong>
                             </p>
+                            <ul className="text-white text-xs space-y-1 ml-4">
+                                <li>• Usa <code className="bg-black bg-opacity-30 px-1 rounded">SELECT * FROM tabla_principal</code> para ver todos los datos</li>
+                                <li>• Los alias de columnas están disponibles según la configuración del Data Warehouse</li>
+                                <li>• Puedes usar JOINs, WHERE, GROUP BY, etc. como en SQL normal</li>
+                            </ul>
                         </div>
                     )}
 
