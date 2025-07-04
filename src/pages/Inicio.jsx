@@ -102,9 +102,61 @@ export default function Inicio() {
                     if (Array.isArray(resultados) && resultados.length > 0) {
                         const columnas = Object.keys(resultados[0]);
                         console.log('Columnas extraídas:', columnas);
-                        setColumnasTabla(columnas);
-                        setDatosTabla(resultados);
-                        console.log('Estados actualizados - columnas:', columnas, 'datos:', resultados);
+
+                        // Si es pestaña cubo-olap, agregar fila de totales
+                        if (pestanaActiva === 'cubo-olap') {
+                            console.log('Agregando totales para cubo OLAP');
+
+                            // Detectar la dimensión X (columna de texto)
+                            const primeraFila = resultados[0];
+                            const dimensionX = columnas.find(col => {
+                                const valor = primeraFila[col];
+                                return isNaN(valor) || typeof valor === 'string';
+                            }) || columnas[0];
+
+                            // Calcular totales para columnas numéricas (totales por filas)
+                            const columnasDatos = columnas.filter(col => col !== dimensionX);
+                            const filaTotales = { [dimensionX]: '' };
+
+                            columnasDatos.forEach(col => {
+                                filaTotales[col] = resultados.reduce((suma, fila) => {
+                                    const valor = parseFloat(fila[col]) || 0;
+                                    return suma + valor;
+                                }, 0);
+                            });
+
+                            // Agregar columna de totales por fila (suma horizontal)
+                            const resultadosConTotalColumna = resultados.map(fila => {
+                                const totalFila = columnasDatos.reduce((suma, col) => {
+                                    const valor = parseFloat(fila[col]) || 0;
+                                    return suma + valor;
+                                }, 0);
+                                return { ...fila, '': totalFila };
+                            });
+
+                            // Calcular el gran total (suma de todos los valores)
+                            const granTotal = columnasDatos.reduce((suma, col) => {
+                                return suma + (filaTotales[col] || 0);
+                            }, 0);                            // Agregar gran total a la fila de totales
+                            filaTotales[''] = granTotal;
+
+                            // Agregar la fila de totales al final
+                            const resultadosFinales = [...resultadosConTotalColumna, filaTotales];
+
+                            // Actualizar columnas para incluir la columna TOTAL
+                            const columnasConTotal = [...columnas, ''];
+
+                            console.log('Fila de totales creada:', filaTotales);
+                            console.log('Resultados con totales completos:', resultadosFinales);
+
+                            setColumnasTabla(columnasConTotal);
+                            setDatosTabla(resultadosFinales);
+                        } else {
+                            setColumnasTabla(columnas);
+                            setDatosTabla(resultados);
+                        }
+
+                        console.log('Estados actualizados - columnas:', columnas, 'datos:', pestanaActiva === 'cubo-olap' ? 'con totales' : resultados.length);
                     } else if (Array.isArray(resultados) && resultados.length === 0) {
                         console.log('Array vacío recibido');
                         setColumnasTabla([]);
@@ -241,9 +293,28 @@ export default function Inicio() {
     // Wrapper functions para usar con las cards
     const manejarEjecucionCubo = async (parametros) => {
         const resultado = await ejecutarCuboOLAP(parametros);
-        // Pasar los datos como tercer parámetro (datosDirectos) y la base de datos como segundo
+        console.log('manejarEjecucionCubo - resultado:', resultado);
+
+        // Procesar datos para la tabla global
         await ejecutarConsultaConTabla(null, parametros.baseDatos, resultado);
-        return resultado;
+
+        // Procesar datos para la card
+        let datosParaCard = null;
+        if (resultado && resultado.respuesta) {
+            try {
+                const filas = JSON.parse(resultado.respuesta);
+                datosParaCard = {
+                    filas: filas,
+                    columnas: filas.length > 0 ? Object.keys(filas[0]) : []
+                };
+                console.log('Datos procesados para card:', datosParaCard);
+            } catch (parseError) {
+                console.error('Error al parsear datos para card:', parseError);
+                datosParaCard = { filas: [], columnas: [] };
+            }
+        }
+
+        return datosParaCard;
     };
 
     const manejarGuardadoVista = async (parametros) => {
@@ -254,9 +325,28 @@ export default function Inicio() {
 
     const manejarConsultaVista = async (parametros) => {
         const resultado = await consultarVistaCubo(parametros);
-        // Pasar los datos como tercer parámetro (datosDirectos) y la base de datos como segundo
+        console.log('manejarConsultaVista - resultado:', resultado);
+
+        // Procesar datos para la tabla global
         await ejecutarConsultaConTabla(null, parametros.baseDatos, resultado);
-        return resultado;
+
+        // Procesar datos para la card
+        let datosParaCard = null;
+        if (resultado && resultado.respuesta) {
+            try {
+                const filas = JSON.parse(resultado.respuesta);
+                datosParaCard = {
+                    filas: filas,
+                    columnas: filas.length > 0 ? Object.keys(filas[0]) : []
+                };
+                console.log('Datos procesados para card consulta vista:', datosParaCard);
+            } catch (parseError) {
+                console.error('Error al parsear datos para card consulta vista:', parseError);
+                datosParaCard = { filas: [], columnas: [] };
+            }
+        }
+
+        return datosParaCard;
     };
 
     const renderContenido = () => {
@@ -356,9 +446,18 @@ export default function Inicio() {
                             <tr>
                                 <th></th>
                                 {columnasTabla.length > 0 ? (
-                                    columnasTabla.map((columna, index) => (
-                                        <td key={index}>{columna}</td>
-                                    ))
+                                    columnasTabla.map((columna, index) => {
+                                        // Detectar si es la columna TOTAL
+                                        const esColumnaTotales = columna === '';
+                                        return (
+                                            <td
+                                                key={index}
+                                                className={esColumnaTotales ? 'font-bold  text-accent-content border-l-2 border-accent' : ''}
+                                            >
+                                                {columna}
+                                            </td>
+                                        );
+                                    })
                                 ) : (
                                     <>
                                         <td>Columna 1</td>
@@ -371,22 +470,55 @@ export default function Inicio() {
                         </thead>
                         <tbody>
                             {datosTabla.length > 0 ? (
-                                datosTabla.map((fila, index) => (
-                                    <tr key={index}>
-                                        <th>{''}</th>
-                                        {columnasTabla.length > 0 ? (
-                                            columnasTabla.map((columna, colIndex) => (
-                                                <td
-                                                    className='text-sm'
-                                                    key={colIndex}>{fila[columna] || '-'}</td>
-                                            ))
-                                        ) : (
-                                            Object.values(fila).map((valor, colIndex) => (
-                                                <td key={colIndex}>{valor || '-'}</td>
-                                            ))
-                                        )}
-                                    </tr>
-                                ))) : (
+                                datosTabla.map((fila, index) => {
+                                    // Detectar si es la fila de totales (última fila y contiene valores vacíos)
+                                    const esFilaTotales = index === datosTabla.length - 1 &&
+                                        Object.values(fila).some(valor => valor === '' || (typeof valor === 'string' && valor.trim() === ''));
+
+                                    return (
+                                        <tr key={index} className={esFilaTotales ? 'border-t-2 border-primary' : ''}>
+                                            <th>{''}</th>
+                                            {columnasTabla.length > 0 ? (columnasTabla.map((columna, colIndex) => {
+                                                // Detectar si es la columna TOTAL
+                                                const esColumnaTotales = columna === '';
+                                                // Combinar estilos para fila de totales y columna de totales
+                                                let className = 'text-sm';
+
+                                                if (esFilaTotales && esColumnaTotales) {
+                                                    // Celda gran total (esquina inferior derecha)
+                                                    className += ' font-black text-accent bg-accent/20 border-l-2 border-accent';
+                                                } else if (esFilaTotales) {
+                                                    // Fila de totales
+                                                    className += ' font-bold text-primary';
+                                                } else if (esColumnaTotales) {
+                                                    // Columna de totales
+                                                    className += ' font-bold text-accent border-l-2 border-accent';
+                                                }
+
+                                                return (
+                                                    <td className={className} key={colIndex}>
+                                                        {(esFilaTotales || esColumnaTotales) && typeof fila[columna] === 'number'
+                                                            ? fila[columna].toLocaleString()
+                                                            : (fila[columna] || '-')
+                                                        }
+                                                    </td>
+                                                );
+                                            })
+                                            ) : (
+                                                Object.values(fila).map((valor, colIndex) => (
+                                                    <td
+                                                        key={colIndex}
+                                                        className={esFilaTotales ? 'font-bold text-primary' : ''}>
+                                                        {esFilaTotales && typeof valor === 'number'
+                                                            ? valor.toLocaleString()
+                                                            : (valor || '-')
+                                                        }
+                                                    </td>
+                                                ))
+                                            )}
+                                        </tr>
+                                    );
+                                })) : (
                                 <tr>
                                     <th>-</th>
                                     <td className='text-sm' colSpan={columnasTabla.length > 0 ? columnasTabla.length : 3}>

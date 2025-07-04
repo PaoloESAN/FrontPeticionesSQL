@@ -9,7 +9,6 @@ export default function ConsultarCuboOLAPCard({ onConsultarVistaCubo }) {
     const [campoFiltro, setCampoFiltro] = useState('');
     const [valorFiltro, setValorFiltro] = useState('');
     const [valoresFiltro, setValoresFiltro] = useState([]);
-    const [resultado, setResultado] = useState(null);
 
     const cargarValoresFiltro = React.useCallback(async (campo) => {
         try {
@@ -83,8 +82,9 @@ export default function ConsultarCuboOLAPCard({ onConsultarVistaCubo }) {
                 valorFiltro: valorFiltro || null
             };
 
+            console.log('ConsultarCuboOLAPCard - Ejecutando con parámetros:', parametros);
             const result = await onConsultarVistaCubo(parametros);
-            setResultado(result);
+            console.log('ConsultarCuboOLAPCard - Resultado recibido:', result);
         } catch (error) {
             console.error('Error al consultar vista del cubo:', error);
         } finally {
@@ -92,97 +92,9 @@ export default function ConsultarCuboOLAPCard({ onConsultarVistaCubo }) {
         }
     };
 
-    const limpiarResultado = () => {
-        setResultado(null);
+    const limpiarFormulario = () => {
         setVistaSeleccionada('');
         setValorFiltro('');
-    };
-
-    const renderResultado = () => {
-        if (!resultado || !resultado.columnas || !resultado.filas) {
-            return null;
-        }
-
-        // Obtener todas las claves de la primera fila para determinar la estructura
-        const primeraFila = resultado.filas[0];
-        const todasLasColumnas = Object.keys(primeraFila);
-
-        // Detectar automáticamente la dimensión X (campo de texto/categórico)
-        let dimensionX = resultado.dimensionX;
-
-        if (!dimensionX) {
-            // Buscar la columna que contiene valores de texto (no numéricos)
-            dimensionX = todasLasColumnas.find(col => {
-                const valor = primeraFila[col];
-                return isNaN(valor) || typeof valor === 'string';
-            });
-
-            // Si no encontramos ninguna columna de texto, usar la primera
-            if (!dimensionX) {
-                dimensionX = todasLasColumnas[0];
-            }
-        }
-
-        // Filtrar las columnas de datos (excluir la dimensión X)
-        const columnasDatos = todasLasColumnas.filter(col => col !== dimensionX);
-
-        return (
-            <div className="mt-4 overflow-x-auto">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                    Resultado de la consulta:
-                    {valorFiltro && (
-                        <span className="text-sm text-accent ml-2">
-                            (Filtrado por: {campoFiltro} = {valorFiltro})
-                        </span>
-                    )}
-                </h3>
-                <table className="table table-zebra table-sm">
-                    <thead>
-                        <tr>
-                            <th className="font-bold bg-primary text-primary-content">{dimensionX}</th>
-                            {columnasDatos.map((col, index) => (
-                                <th key={index} className="text-center">{col}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {resultado.filas.map((fila, index) => (
-                            <tr key={index}>
-                                <td className="font-semibold bg-base-200">{fila[dimensionX]}</td>
-                                {columnasDatos.map((col, colIndex) => (
-                                    <td key={colIndex} className="text-center">
-                                        {fila[col] !== undefined ? fila[col] : 0}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                <div className="mt-2 p-3 bg-base-200 rounded">
-                    <h4 className="font-semibold">Resumen:</h4>
-                    <p className="text-sm">
-                        Total de filas: {resultado.filas.length} |
-                        Columnas de datos: {columnasDatos.length} |
-                        Dimensión principal: {dimensionX}
-                    </p>
-                </div>
-
-                {/* Debug info - remover en producción */}
-                <details className="mt-2">
-                    <summary className="text-xs text-gray-500 cursor-pointer">Debug: Estructura de datos</summary>
-                    <pre className="text-xs bg-base-300 p-2 rounded mt-1 overflow-auto">
-                        {JSON.stringify({
-                            dimensionX,
-                            columnasDatos,
-                            todasLasColumnas,
-                            primeraFila,
-                            deteccionAutomatica: !resultado.dimensionX
-                        }, null, 2)}
-                    </pre>
-                </details>
-            </div>
-        );
     };
 
     // Función para manejar el cambio de base de datos
@@ -193,7 +105,6 @@ export default function ConsultarCuboOLAPCard({ onConsultarVistaCubo }) {
         setCampoFiltro('');
         setValorFiltro('');
         setValoresFiltro([]);
-        setResultado(null);
     };
 
     return (
@@ -267,7 +178,7 @@ export default function ConsultarCuboOLAPCard({ onConsultarVistaCubo }) {
                 <div className="card-actions justify-end gap-2">
                     <button
                         className="btn btn-ghost"
-                        onClick={limpiarResultado}
+                        onClick={limpiarFormulario}
                         disabled={isOperating}
                     >
                         Limpiar
@@ -281,9 +192,6 @@ export default function ConsultarCuboOLAPCard({ onConsultarVistaCubo }) {
                         {isOperating ? 'Consultando...' : 'Consultar Cubo'}
                     </button>
                 </div>
-
-                {/* Mostrar resultado */}
-                {renderResultado()}
             </div>
 
             {/* Modal de error */}

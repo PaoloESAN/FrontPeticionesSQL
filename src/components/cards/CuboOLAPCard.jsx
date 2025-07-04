@@ -15,7 +15,6 @@ export default function CuboOLAPCard({ onEjecutarCuboOLAP, onGuardarVistaCubo })
     const [tipoAgregacion, setTipoAgregacion] = useState('SUM');
     const [nombreVista, setNombreVista] = useState('');
     const [valoresFiltro, setValoresFiltro] = useState([]);
-    const [resultado, setResultado] = useState(null);
 
     const cargarValoresFiltro = React.useCallback(async () => {
         try {
@@ -56,7 +55,6 @@ export default function CuboOLAPCard({ onEjecutarCuboOLAP, onGuardarVistaCubo })
         setCampoFiltro('');
         setValorFiltro('');
         setValoresFiltro([]);
-        setResultado(null);
     };
 
     const handleEjecutarCubo = async () => {
@@ -78,8 +76,9 @@ export default function CuboOLAPCard({ onEjecutarCuboOLAP, onGuardarVistaCubo })
                 valorFiltro
             };
 
+            console.log('CuboOLAPCard - Ejecutando con parámetros:', parametros);
             const result = await onEjecutarCuboOLAP(parametros);
-            setResultado(result);
+            console.log('CuboOLAPCard - Resultado recibido:', result);
         } catch (error) {
             console.error('Error al ejecutar cubo OLAP:', error);
         } finally {
@@ -129,91 +128,7 @@ export default function CuboOLAPCard({ onEjecutarCuboOLAP, onGuardarVistaCubo })
         setCampoFiltro('');
         setValorFiltro('');
         setNombreVista('');
-        setResultado(null);
         setValoresFiltro([]);
-    };
-
-    const renderResultado = () => {
-        if (!resultado || !resultado.columnas || !resultado.filas) {
-            return null;
-        }
-
-        // Obtener todas las claves de la primera fila para determinar la estructura
-        const primeraFila = resultado.filas[0];
-        const todasLasColumnas = Object.keys(primeraFila);
-
-        // Detectar automáticamente la dimensión X basándose en el formulario o tipo de datos
-        let dimensionXActual = dimensionX; // La seleccionada en el formulario
-
-        if (!dimensionXActual) {
-            // Buscar la columna que contiene valores de texto (no numéricos)
-            dimensionXActual = todasLasColumnas.find(col => {
-                const valor = primeraFila[col];
-                return isNaN(valor) || typeof valor === 'string';
-            });
-
-            // Si no encontramos ninguna columna de texto, usar la primera
-            if (!dimensionXActual) {
-                dimensionXActual = todasLasColumnas[0];
-            }
-        }
-
-        // Filtrar las columnas de datos (excluir la dimensión X)
-        const columnasDatos = todasLasColumnas.filter(col => col !== dimensionXActual);
-
-        return (
-            <div className="mt-4 overflow-x-auto">
-                <h3 className="text-lg font-semibold text-white mb-2">Resultado del Cubo OLAP:</h3>
-                <table className="table table-zebra table-sm">
-                    <thead>
-                        <tr>
-                            <th className="font-bold bg-primary text-primary-content">{dimensionXActual}</th>
-                            {columnasDatos.map((col, index) => (
-                                <th key={index} className="text-center">{col}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {resultado.filas.map((fila, index) => (
-                            <tr key={index}>
-                                <td className="font-semibold bg-base-200">{fila[dimensionXActual]}</td>
-                                {columnasDatos.map((col, colIndex) => (
-                                    <td key={colIndex} className="text-center">
-                                        {fila[col] !== undefined ? fila[col] : 0}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                {/* Información del cubo */}
-                <div className="mt-2 p-3 bg-base-200 rounded">
-                    <h4 className="font-semibold">Configuración del Cubo:</h4>
-                    <p className="text-sm">
-                        Dimensión X (Filas): {dimensionXActual} |
-                        Dimensión Y (Columnas): {dimensionY} |
-                        Agregación: {tipoAgregacion}({campoValores})
-                        {valorFiltro && ` | Filtro: ${campoFiltro} = ${valorFiltro}`}
-                    </p>
-                </div>
-
-                {/* Debug info - remover en producción */}
-                <details className="mt-2">
-                    <summary className="text-xs text-gray-500 cursor-pointer">Debug: Estructura de datos</summary>
-                    <pre className="text-xs bg-base-300 p-2 rounded mt-1 overflow-auto">
-                        {JSON.stringify({
-                            dimensionXFormulario: dimensionX,
-                            dimensionXActual,
-                            columnasDatos,
-                            todasLasColumnas,
-                            primeraFila,
-                            deteccionAutomatica: !dimensionX
-                        }, null, 2)}
-                    </pre>
-                </details>
-            </div>
-        );
     };
 
     return (
@@ -390,9 +305,6 @@ export default function CuboOLAPCard({ onEjecutarCuboOLAP, onGuardarVistaCubo })
                         {isOperating ? 'Ejecutando...' : 'Ejecutar Cubo'}
                     </button>
                 </div>
-
-                {/* Mostrar resultado */}
-                {renderResultado()}
             </div>
 
             {/* Modales de error y éxito */}
