@@ -79,7 +79,8 @@ export default function ConsultarCuboOLAPCard({ onConsultarVistaCubo }) {
             const parametros = {
                 baseDatos: baseDatosSeleccionada,
                 vista: vistaSeleccionada,
-                valorFiltro: valorFiltro || null
+                valorFiltro: valorFiltro || null,
+                campoFiltro: campoFiltro || null  // Pasar el campo filtro para que se pueda excluir de la tabla
             };
 
             console.log('ConsultarCuboOLAPCard - Ejecutando con parámetros:', parametros);
@@ -137,6 +138,7 @@ export default function ConsultarCuboOLAPCard({ onConsultarVistaCubo }) {
                             onVistaChange={setVistaSeleccionada}
                             placeholder="Selecciona vista del cubo"
                             className="select select-secondary w-full"
+                            filtro={(vista) => vista.endsWith('_cubo')} // Solo mostrar vistas que terminen con "_cubo"
                         />
                     </div>
 
@@ -161,18 +163,6 @@ export default function ConsultarCuboOLAPCard({ onConsultarVistaCubo }) {
                         </div>
                     )}
                 </div>
-
-                {/* Información de la vista seleccionada */}
-                {vistaSeleccionada && (
-                    <div className="bg-base-200 p-3 rounded">
-                        <h4 className="font-semibold text-sm">Vista seleccionada: {vistaSeleccionada}</h4>
-                        {campoFiltro && (
-                            <p className="text-xs text-gray-600">
-                                Dimensión de filtro disponible: {campoFiltro}
-                            </p>
-                        )}
-                    </div>
-                )}
 
                 {/* Botones de acción */}
                 <div className="card-actions justify-end gap-2">

@@ -52,7 +52,7 @@ export default function Inicio() {
         }
     };
 
-    const ejecutarConsultaConTabla = async (consultaSQL, baseDatosSeleccionada, datosDirectos = null) => {
+    const ejecutarConsultaConTabla = async (consultaSQL, baseDatosSeleccionada, datosDirectos = null, parametrosCubo = null) => {
         try {
             let data;
 
@@ -105,17 +105,41 @@ export default function Inicio() {
 
                         // Si es pestaña cubo-olap, agregar fila de totales
                         if (pestanaActiva === 'cubo-olap') {
-                            console.log('Agregando totales para cubo OLAP');
+                            console.log('=== INICIO PROCESAMIENTO CUBO OLAP ===');
+                            console.log('Columnas originales:', columnas);
+                            console.log('Parámetros del cubo recibidos:', parametrosCubo);
+
+                            // Excluir el campo filtro de las columnas si está definido
+                            let columnasFiltradas = columnas;
+                            if (parametrosCubo && parametrosCubo.campoFiltro) {
+                                console.log('Campo filtro detectado:', parametrosCubo.campoFiltro);
+                                columnasFiltradas = columnas.filter(col => col !== parametrosCubo.campoFiltro);
+                                console.log('Columnas después de filtrar campo filtro:', columnasFiltradas);
+                            } else {
+                                console.log('No hay campo filtro o parámetros del cubo no definidos');
+                            }
 
                             // Detectar la dimensión X (columna de texto)
                             const primeraFila = resultados[0];
-                            const dimensionX = columnas.find(col => {
+                            const dimensionX = columnasFiltradas.find(col => {
                                 const valor = primeraFila[col];
                                 return isNaN(valor) || typeof valor === 'string';
-                            }) || columnas[0];
+                            }) || columnasFiltradas[0];
 
-                            // Calcular totales para columnas numéricas (totales por filas)
-                            const columnasDatos = columnas.filter(col => col !== dimensionX);
+                            console.log('Dimensión X detectada:', dimensionX);
+
+                            // Detectar campos que no son numéricos para excluirlos de los totales
+                            const camposTexto = columnasFiltradas.filter(col => {
+                                const valor = primeraFila[col];
+                                return isNaN(valor) || typeof valor === 'string';
+                            });
+
+                            console.log('Campos de texto detectados:', camposTexto);
+
+                            // Calcular totales solo para columnas numéricas (excluir dimensión X y campos de texto)
+                            const columnasDatos = columnasFiltradas.filter(col => !camposTexto.includes(col));
+                            console.log('Columnas de datos numéricas:', columnasDatos);
+
                             const filaTotales = { [dimensionX]: '' };
 
                             columnasDatos.forEach(col => {
@@ -131,25 +155,37 @@ export default function Inicio() {
                                     const valor = parseFloat(fila[col]) || 0;
                                     return suma + valor;
                                 }, 0);
-                                return { ...fila, '': totalFila };
+
+                                // Filtrar solo las columnas que queremos mostrar (excluyendo campo filtro)
+                                const filaFiltrada = { [dimensionX]: fila[dimensionX] };
+                                columnasDatos.forEach(col => {
+                                    filaFiltrada[col] = fila[col];
+                                });
+                                filaFiltrada[''] = totalFila;
+
+                                return filaFiltrada;
                             });
 
                             // Calcular el gran total (suma de todos los valores)
                             const granTotal = columnasDatos.reduce((suma, col) => {
                                 return suma + (filaTotales[col] || 0);
-                            }, 0);                            // Agregar gran total a la fila de totales
+                            }, 0);
+
+                            // Agregar gran total a la fila de totales
                             filaTotales[''] = granTotal;
 
                             // Agregar la fila de totales al final
                             const resultadosFinales = [...resultadosConTotalColumna, filaTotales];
 
-                            // Actualizar columnas para incluir la columna TOTAL
-                            const columnasConTotal = [...columnas, ''];
+                            // Crear array de columnas filtradas: dimensión X + columnas numéricas + total
+                            const columnasParaMostrar = [dimensionX, ...columnasDatos, ''];
 
                             console.log('Fila de totales creada:', filaTotales);
                             console.log('Resultados con totales completos:', resultadosFinales);
+                            console.log('Columnas a mostrar (sin campo filtro):', columnasParaMostrar);
+                            console.log('=== FIN PROCESAMIENTO CUBO OLAP ===');
 
-                            setColumnasTabla(columnasConTotal);
+                            setColumnasTabla(columnasParaMostrar);
                             setDatosTabla(resultadosFinales);
                         } else {
                             setColumnasTabla(columnas);
@@ -292,11 +328,16 @@ export default function Inicio() {
 
     // Wrapper functions para usar con las cards
     const manejarEjecucionCubo = async (parametros) => {
+        console.log('=== INICIO manejarEjecucionCubo ===');
+        console.log('Parámetros recibidos en manejarEjecucionCubo:', parametros);
+        console.log('Campo filtro:', parametros.campoFiltro);
+
         const resultado = await ejecutarCuboOLAP(parametros);
         console.log('manejarEjecucionCubo - resultado:', resultado);
 
-        // Procesar datos para la tabla global
-        await ejecutarConsultaConTabla(null, parametros.baseDatos, resultado);
+        // Procesar datos para la tabla global, pasando los parámetros del cubo
+        console.log('Pasando parámetros a ejecutarConsultaConTabla:', parametros);
+        await ejecutarConsultaConTabla(null, parametros.baseDatos, resultado, parametros);
 
         // Procesar datos para la card
         let datosParaCard = null;
@@ -314,6 +355,7 @@ export default function Inicio() {
             }
         }
 
+        console.log('=== FIN manejarEjecucionCubo ===');
         return datosParaCard;
     };
 
@@ -326,9 +368,17 @@ export default function Inicio() {
     const manejarConsultaVista = async (parametros) => {
         const resultado = await consultarVistaCubo(parametros);
         console.log('manejarConsultaVista - resultado:', resultado);
+        console.log('manejarConsultaVista - parámetros recibidos:', parametros);
 
-        // Procesar datos para la tabla global
-        await ejecutarConsultaConTabla(null, parametros.baseDatos, resultado);
+        // Crear un objeto de parámetros simulado del cubo usando el campoFiltro de la vista
+        const parametrosCuboSimulado = parametros.campoFiltro ? {
+            campoFiltro: parametros.campoFiltro
+        } : null;
+
+        console.log('Parámetros del cubo simulado para consulta de vista:', parametrosCuboSimulado);
+
+        // Pasar los parámetros simulados para que se pueda excluir el campo filtro
+        await ejecutarConsultaConTabla(null, parametros.baseDatos, resultado, parametrosCuboSimulado);
 
         // Procesar datos para la card
         let datosParaCard = null;
@@ -503,7 +553,7 @@ export default function Inicio() {
                                                     <td className={className} key={colIndex}>
                                                         {(esFilaTotales || esColumnaTotales) && typeof fila[columna] === 'number'
                                                             ? fila[columna].toLocaleString()
-                                                            : ((esFilaTotales && colIndex === 0 && pestanaActiva === 'cubo-olap') ? '' : (fila[columna] || '-'))
+                                                            : ((esFilaTotales && colIndex === 0 && pestanaActiva === 'cubo-olap') ? '' : (fila[columna] || '0'))
                                                         }
                                                     </td>
                                                 );

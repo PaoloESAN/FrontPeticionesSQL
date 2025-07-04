@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 export default function VistaSelector({
     baseDatos,
     onVistaChange,
     value,
     placeholder = "Selecciona vista",
-    className = "select select-accent"
+    className = "select select-accent",
+    filtro = null // Nueva prop para filtrar las vistas
 }) {
     const [vistas, setVistas] = useState([]);
-    const [isLoading, setIsLoading] = useState(false); const obtenerVistas = async (nombreBase) => {
+    const [isLoading, setIsLoading] = useState(false);
+
+    const obtenerVistas = useCallback(async (nombreBase) => {
         if (!nombreBase) {
             setVistas([]);
             return;
@@ -27,9 +30,14 @@ export default function VistaSelector({
                 console.log('Respuesta de vistas:', data);
 
                 // Asumiendo que la respuesta es un array de nombres de vistas
-                const nombresVistas = Array.isArray(data) ? data : [];
+                let nombresVistas = Array.isArray(data) ? data : [];
 
-                console.log('Vistas encontradas:', nombresVistas);
+                // Aplicar filtro si se proporciona
+                if (filtro && typeof filtro === 'function') {
+                    nombresVistas = nombresVistas.filter(filtro);
+                }
+
+                console.log('Vistas encontradas (después del filtro):', nombresVistas);
                 setVistas(nombresVistas);
             } else {
                 console.error('Error al obtener vistas:', response.status);
@@ -43,11 +51,11 @@ export default function VistaSelector({
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [filtro]); // Solo filtro como dependencia
 
     useEffect(() => {
         obtenerVistas(baseDatos);
-    }, [baseDatos]);
+    }, [baseDatos, obtenerVistas]); // Agregar obtenerVistas como dependencia
 
     useEffect(() => {
         const handleVistasActualizadas = (event) => {
@@ -61,7 +69,7 @@ export default function VistaSelector({
         return () => {
             window.removeEventListener('vistasActualizadas', handleVistasActualizadas);
         };
-    }, [baseDatos]);
+    }, [baseDatos, obtenerVistas]); // Agregar obtenerVistas como dependencia
 
     const handleChange = (e) => {
         const selectedVista = e.target.value;

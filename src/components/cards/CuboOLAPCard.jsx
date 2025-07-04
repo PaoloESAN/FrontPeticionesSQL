@@ -101,7 +101,7 @@ export default function CuboOLAPCard({ onEjecutarCuboOLAP, onGuardarVistaCubo })
         try {
             const parametros = {
                 baseDatos: baseDatosSeleccionada,
-                nombreVista: nombreVista.trim(),
+                nombreVista: nombreVista.trim() + '_cubo',
                 tabla: tablaSeleccionada,
                 dimensionX,
                 dimensionY,
@@ -275,7 +275,12 @@ export default function CuboOLAPCard({ onEjecutarCuboOLAP, onGuardarVistaCubo })
                         value={nombreVista}
                         onChange={(e) => setNombreVista(e.target.value)}
                     />
+                    {nombreVista.trim() && (
+                        <div className="text-sm text-orange-300 mt-1">
+                            Nota: El nombre de la vista se guardará con el sufijo "_cubo"
+                        </div>)}
                 </div>
+
 
                 {/* Botones de acción */}
                 <div className="card-actions justify-end gap-2">
