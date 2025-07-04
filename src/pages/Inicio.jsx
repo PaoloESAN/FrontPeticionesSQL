@@ -449,12 +449,16 @@ export default function Inicio() {
                                     columnasTabla.map((columna, index) => {
                                         // Detectar si es la columna TOTAL
                                         const esColumnaTotales = columna === '';
+                                        // Para cubo OLAP, ocultar el nombre de la primera columna (dimensión X)
+                                        const esPrimeraColumnaOLAP = index === 0 && pestanaActiva === 'cubo-olap';
+                                        const textoColumna = esPrimeraColumnaOLAP ? '' : columna;
+
                                         return (
                                             <td
                                                 key={index}
-                                                className={esColumnaTotales ? 'font-bold  text-accent-content border-l-2 border-accent' : ''}
+                                                className={esColumnaTotales ? 'font-bold text-accent-content border-l-2 border-accent' : ''}
                                             >
-                                                {columna}
+                                                {textoColumna}
                                             </td>
                                         );
                                     })
@@ -499,7 +503,7 @@ export default function Inicio() {
                                                     <td className={className} key={colIndex}>
                                                         {(esFilaTotales || esColumnaTotales) && typeof fila[columna] === 'number'
                                                             ? fila[columna].toLocaleString()
-                                                            : (fila[columna] || '-')
+                                                            : ((esFilaTotales && colIndex === 0 && pestanaActiva === 'cubo-olap') ? '' : (fila[columna] || '-'))
                                                         }
                                                     </td>
                                                 );
