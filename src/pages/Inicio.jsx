@@ -52,7 +52,7 @@ export default function Inicio() {
         }
     };
 
-    const ejecutarConsultaConTabla = async (consultaSQL, baseDatosSeleccionada, datosDirectos = null, parametrosCubo = null) => {
+    const ejecutarConsultaConTabla = async (consultaSQL, baseDatosSeleccionada, datosDirectos = null, parametrosCubo = null, esConsultaVistaCubo = false) => {
         try {
             let data;
 
@@ -140,17 +140,53 @@ export default function Inicio() {
                             const columnasDatos = columnasFiltradas.filter(col => !camposTexto.includes(col));
                             console.log('Columnas de datos numéricas:', columnasDatos);
 
+                            // AGRUPACIÓN: Solo agrupar si viene de ConsultarCuboOLAPCard (cuando hay duplicados por campo filtro)
+                            let resultadosParaProcesar = resultados;
+                            if (esConsultaVistaCubo) {
+                                console.log('=== INICIANDO AGRUPACIÓN (solo para ConsultarCuboOLAPCard) ===');
+                                const datosAgrupados = new Map();
+                                resultados.forEach(fila => {
+                                    // Crear una clave única basada en los campos de texto (dimensiones)
+                                    const claveDimensiones = camposTexto.map(campo => fila[campo]).join('|');
+
+                                    if (datosAgrupados.has(claveDimensiones)) {
+                                        // Si ya existe esta combinación de dimensiones, sumar los valores numéricos
+                                        const filaExistente = datosAgrupados.get(claveDimensiones);
+                                        columnasDatos.forEach(colNumérica => {
+                                            filaExistente[colNumérica] = (parseFloat(filaExistente[colNumérica]) || 0) + (parseFloat(fila[colNumérica]) || 0);
+                                        });
+                                    } else {
+                                        // Si es nueva, crear una nueva entrada con solo las columnas filtradas
+                                        const nuevaFila = {};
+                                        camposTexto.forEach(campo => {
+                                            nuevaFila[campo] = fila[campo];
+                                        });
+                                        columnasDatos.forEach(colNumérica => {
+                                            nuevaFila[colNumérica] = parseFloat(fila[colNumérica]) || 0;
+                                        });
+                                        datosAgrupados.set(claveDimensiones, nuevaFila);
+                                    }
+                                });
+
+                                // Convertir el Map de vuelta a un array
+                                resultadosParaProcesar = Array.from(datosAgrupados.values());
+                                console.log('Datos después de agrupar:', resultadosParaProcesar);
+                                console.log('=== AGRUPACIÓN COMPLETADA ===');
+                            } else {
+                                console.log('No se aplica agrupación (no es ConsultarCuboOLAPCard)');
+                            }
+
                             const filaTotales = { [dimensionX]: '' };
 
                             columnasDatos.forEach(col => {
-                                filaTotales[col] = resultados.reduce((suma, fila) => {
+                                filaTotales[col] = resultadosParaProcesar.reduce((suma, fila) => {
                                     const valor = parseFloat(fila[col]) || 0;
                                     return suma + valor;
                                 }, 0);
                             });
 
                             // Agregar columna de totales por fila (suma horizontal)
-                            const resultadosConTotalColumna = resultados.map(fila => {
+                            const resultadosConTotalColumna = resultadosParaProcesar.map(fila => {
                                 const totalFila = columnasDatos.reduce((suma, col) => {
                                     const valor = parseFloat(fila[col]) || 0;
                                     return suma + valor;
@@ -378,7 +414,8 @@ export default function Inicio() {
         console.log('Parámetros del cubo simulado para consulta de vista:', parametrosCuboSimulado);
 
         // Pasar los parámetros simulados para que se pueda excluir el campo filtro
-        await ejecutarConsultaConTabla(null, parametros.baseDatos, resultado, parametrosCuboSimulado);
+        // Y marcar como consulta de vista de cubo para activar la agrupación
+        await ejecutarConsultaConTabla(null, parametros.baseDatos, resultado, parametrosCuboSimulado, true);
 
         // Procesar datos para la card
         let datosParaCard = null;
