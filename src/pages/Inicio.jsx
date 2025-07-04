@@ -25,7 +25,9 @@ import {
     ListarDataWarehousesCard,
     EliminarDataWarehouseCard,
     ConsultarDataWarehouseCard,
-    CrearDataMartCard
+    CrearDataMartCard,
+    CuboOLAPCard,
+    ConsultarCuboOLAPCard
 } from '../components/cards/index.js'
 
 export default function Inicio() {
@@ -70,7 +72,7 @@ export default function Inicio() {
 
                 data = await response.json();
             }
-            if (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures' || pestanaActiva === 'datawarehouse') {
+            if (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures' || pestanaActiva === 'datawarehouse' || pestanaActiva === 'cubo-olap') {
                 console.log('Procesando datos para tabla:', { datosDirectos: !!datosDirectos, data, pestanaActiva });
 
                 setConsultaEjecutada(true);
@@ -150,6 +152,113 @@ export default function Inicio() {
 
     const { crearBase, eliminarBase } = useBaseDatos();
 
+    // Funciones para Cubo OLAP
+    const ejecutarCuboOLAP = async (parametros) => {
+        try {
+            const response = await fetch('http://localhost:8080/api/cubo-olap/ejecutar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(parametros)
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al ejecutar cubo OLAP');
+            }
+
+            const data = await response.json();
+
+            // Convertir el resultado del cubo OLAP al formato esperado por ejecutarConsultaConTabla
+            if (data.filas && data.filas.length > 0) {
+                return {
+                    respuesta: JSON.stringify(data.filas)
+                };
+            } else {
+                return {
+                    respuesta: JSON.stringify([])
+                };
+            }
+        } catch (error) {
+            console.error('Error ejecutando cubo OLAP:', error);
+            document.getElementById('modalErrorGeneral')?.showModal();
+            throw error;
+        }
+    };
+
+    const guardarVistaCubo = async (parametros) => {
+        try {
+            const response = await fetch('http://localhost:8080/api/cubo-olap/guardar-vista', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(parametros)
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al guardar vista del cubo');
+            }
+
+            const data = await response.json();
+
+            // Mostrar mensaje de éxito en textarea
+            return {
+                respuesta: `Vista "${data.nombreVista}" creada exitosamente.\n\n${data.message || 'La vista del cubo OLAP ha sido guardada y puede ser consultada desde la pestaña de consulta de cubos.'}`
+            };
+        } catch (error) {
+            console.error('Error guardando vista del cubo:', error);
+            throw error;
+        }
+    };
+
+    const consultarVistaCubo = async (parametros) => {
+        try {
+            const response = await fetch('http://localhost:8080/api/cubo-olap/consultar-vista', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(parametros)
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al consultar vista del cubo');
+            }
+
+            const data = await response.json();
+
+            // Convertir el resultado al formato esperado
+            if (data.filas && data.filas.length > 0) {
+                return {
+                    respuesta: JSON.stringify(data.filas)
+                };
+            } else {
+                return {
+                    respuesta: JSON.stringify([])
+                };
+            }
+        } catch (error) {
+            console.error('Error consultando vista del cubo:', error);
+            throw error;
+        }
+    };
+
+    // Wrapper functions para usar con las cards
+    const manejarEjecucionCubo = async (parametros) => {
+        const resultado = await ejecutarCuboOLAP(parametros);
+        // Pasar los datos como tercer parámetro (datosDirectos) y la base de datos como segundo
+        await ejecutarConsultaConTabla(null, parametros.baseDatos, resultado);
+        return resultado;
+    };
+
+    const manejarGuardadoVista = async (parametros) => {
+        const resultado = await guardarVistaCubo(parametros);
+        await mostrarEnTextarea(resultado);
+        return resultado;
+    };
+
+    const manejarConsultaVista = async (parametros) => {
+        const resultado = await consultarVistaCubo(parametros);
+        // Pasar los datos como tercer parámetro (datosDirectos) y la base de datos como segundo
+        await ejecutarConsultaConTabla(null, parametros.baseDatos, resultado);
+        return resultado;
+    };
+
     const renderContenido = () => {
         switch (pestanaActiva) {
             case 'bases-datos':
@@ -204,6 +313,18 @@ export default function Inicio() {
                         <CrearDataMartCard onMostrarEnTextarea={mostrarEnTextarea} />
                     </div>
                 );
+            case 'cubo-olap':
+                return (
+                    <div className='flex flex-wrap gap-4'>
+                        <CuboOLAPCard
+                            onEjecutarCuboOLAP={manejarEjecucionCubo}
+                            onGuardarVistaCubo={manejarGuardadoVista}
+                        />
+                        <ConsultarCuboOLAPCard
+                            onConsultarVistaCubo={manejarConsultaVista}
+                        />
+                    </div>
+                );
             default:
                 return <div className="text-center text-gray-500 mt-8">Selecciona una categoría del menú lateral</div>;
         }
@@ -217,7 +338,7 @@ export default function Inicio() {
         setMostrarTabla(false);
         document.getElementById('sidebar-drawer').checked = false;
     }; const renderResultados = () => {
-        const deberiasMostrarTabla = mostrarTabla && (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures' || pestanaActiva === 'datawarehouse');
+        const deberiasMostrarTabla = mostrarTabla && (pestanaActiva === 'consultas' || pestanaActiva === 'vistas' || pestanaActiva === 'procedures' || pestanaActiva === 'datawarehouse' || pestanaActiva === 'cubo-olap');
 
         console.log('renderResultados:', {
             deberiasMostrarTabla,
@@ -301,6 +422,7 @@ export default function Inicio() {
             case 'procedures': return 'Gestión de Stored Procedures';
             case 'consultas': return 'Consultas SQL';
             case 'datawarehouse': return 'Gestión de Data Warehouse';
+            case 'cubo-olap': return 'Cubo OLAP - Análisis Multidimensional';
             default: return 'Administrador de Base de Datos';
         }
     };
@@ -359,6 +481,15 @@ export default function Inicio() {
             icono: (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+            )
+        },
+        {
+            id: 'cubo-olap',
+            titulo: 'Cubo OLAP',
+            icono: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
             )
         }

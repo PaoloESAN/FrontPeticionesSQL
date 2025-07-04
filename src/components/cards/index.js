@@ -26,3 +26,5 @@ export { default as ListarDataWarehousesCard } from './ListarDataWarehousesCard'
 export { default as EliminarDataWarehouseCard } from './EliminarDataWarehouseCard';
 export { default as ConsultarDataWarehouseCard } from './ConsultarDataWarehouseCard';
 export { default as CrearDataMartCard } from './CrearDataMartCard';
+export { default as CuboOLAPCard } from './CuboOLAPCard';
+export { default as ConsultarCuboOLAPCard } from './ConsultarCuboOLAPCard';
